@@ -1,83 +1,22 @@
-<!DOCTYPE html>
-<html lang="fa">
-<head>
-  <meta charset="UTF-8">
-  <title>Saved Messages</title>
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: auto; }
-    #messages { border: 1px solid #ccc; padding: 10px; min-height: 200px; }
-    .msg { border-bottom: 1px solid #eee; padding: 5px; }
-  </style>
-</head>
-<body>
-  <h2>Saved Messages</h2>
-  <textarea id="text" placeholder="پیام خودت رو بنویس"></textarea><br>
-  <input type="file" id="file"><br>
-  <button id="saveBtn">ذخیره</button>
-
-  <h3>پیام‌ها</h3>
-  <div id="messages"></div>
-
 <script>
-  // ---------- تنظیم Supabase ----------
-  const SUPABASE_URL = "https://exvmgilwijvsdxblbpuy.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4dm1naWx3aWp2c2R4YmxicHV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyMzEwMzksImV4cCI6MjA3NDgwNzAzOX0.bpkUdlod9jNdO1NoLb-Mj23dwIdXthahsJUwfJ1CUsg"; // از Project Settings > API بگیر
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  // ---------- ذخیره پیام ----------
-  document.getElementById("saveBtn").onclick = async () => {
-    const text = document.getElementById("text").value;
-    const fileInput = document.getElementById("file");
-    let fileUrl = null;
-
-    if (fileInput.files.length > 0) {
-      const file = fileInput.files[0];
-      const { data, error } = await supabase.storage
-        .from("uploads")
-        .upload(Date.now() + "_" + file.name, file, { upsert: true });
-      if (error) {
-        alert("خطا در آپلود فایل: " + error.message);
-        return;
-      }
-      fileUrl = `${SUPABASE_URL}/storage/v1/object/public/uploads/${data.path}`;
+// این بخش رو کامل می‌فهمی - شبیه پایتونه
+function addTask() {
+    // اینجا مثل پایتون متغیر تعریف می‌کنیم
+    const task = document.getElementById('taskInput').value;
+    
+    // شرط - دقیقاً مثل پایتون
+    if (task.length > 0) {
+        const list = document.getElementById('taskList');
+        // اینجا یه چیز جدید یاد می‌گیری - اضافه کردن به HTML
+        list.innerHTML = list.innerHTML + '<li>' + task + '</li>';
     }
+}
 
-    const { error: insertError } = await supabase
-      .from("messages")
-      .insert([{ text, file_url: fileUrl }]);
-
-    if (insertError) {
-      alert("خطا در ذخیره پیام: " + insertError.message);
-    } else {
-      document.getElementById("text").value = "";
-      fileInput.value = "";
-      loadMessages();
-    }
-  };
-
-  // ---------- نمایش پیام‌ها ----------
-  async function loadMessages() {
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
-      console.log(error);
-      return;
-    }
-    const container = document.getElementById("messages");
-    container.innerHTML = "";
-    data.forEach(msg => {
-      const div = document.createElement("div");
-      div.className = "msg";
-      div.innerHTML = `<p>${msg.text || ""}</p>` +
-        (msg.file_url ? `<a href="${msg.file_url}" target="_blank">📎 فایل</a>` : "");
-      container.appendChild(div);
-    });
-  }
-
-  loadMessages();
+// این تابع رو هم می‌فهمی
+function startWaterReminder() {
+    // حلقهٔ زمان‌بندی شده - هر ۱ ساعت
+    setInterval(function() {
+        alert('💧 وقت نوشیدن آب است!');  // مثل print در پایتون
+    }, 60 * 60 * 1000);  // ۱ ساعت به میلی‌ثانیه
+}
 </script>
-</body>
-</html>
