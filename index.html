@@ -1,268 +1,83 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>چت P2P با Room ID (Firebase Signaling)</title>
-<style>
-  body{font-family: Tahoma, Arial;direction: rtl;padding:16px;max-width:900px;margin:0 auto}
-  input,button{padding:8px;margin:6px 0}
-  #messages{border:1px solid #ddd;height:300px;overflow:auto;padding:8px;background:#fff}
-  .msg{padding:6px;border-radius:6px;margin:6px 0;max-width:80%}
-  .mine{background:#e0ffe0;margin-left:auto}
-  .other{background:#f0f0f0;margin-right:auto}
-  .row{display:flex;gap:8px;align-items:center}
-  .small{font-size:12px;color:#666}
-</style>
+  <meta charset="UTF-8">
+  <title>Saved Messages</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; }
+    #messages { border: 1px solid #ccc; padding: 10px; min-height: 200px; }
+    .msg { border-bottom: 1px solid #eee; padding: 5px; }
+  </style>
 </head>
 <body>
-<h2>چت P2P با Room ID (Firebase)</h2>
-<p class="small">برای اجرا: این فایل را در GitHub Pages آپلود کن. قبل از آن firebaseConfig را از کنسول Firebase جایگزین کن.</p>
+  <h2>Saved Messages</h2>
+  <textarea id="text" placeholder="پیام خودت رو بنویس"></textarea><br>
+  <input type="file" id="file"><br>
+  <button id="saveBtn">ذخیره</button>
 
-<div>
-  <label>نام شما:</label>
-  <input id="name" placeholder="مثلاً: sina" />
-</div>
-
-<div class="row">
-  <button id="createBtn">ساختن روم جدید (من Starter)</button>
-  <input id="roomInput" placeholder="یا وارد کن: 6 رقم" style="width:120px"/>
-  <button id="joinBtn">پیوستن به روم</button>
-</div>
-
-<div style="margin-top:8px">
-  <div>کد روم فعلی: <strong id="roomId">—</strong></div>
-  <div>وضعیت: <span id="status">قطع</span></div>
-</div>
-
-<hr/>
-
-<div id="chatSection" style="display:none">
-  <div id="messages" aria-live="polite"></div>
-  <div class="row" style="margin-top:8px">
-    <input id="txt" placeholder="پیام..." style="flex:1"/>
-    <button id="send">ارسال</button>
-  </div>
-</div>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <h3>پیام‌ها</h3>
+  <div id="messages"></div>
 
 <script>
-/* ====== جایگزین کن با firebaseConfig که از کنسول می‌گیری ====== */
-const firebaseConfig = /* PASTE YOUR FIREBASE CONFIG HERE */;
-/* مثال:
-const firebaseConfig = {
-  apiKey: "AIza....",
-  authDomain: "your-project.firebaseapp.com",
-  databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-  projectId: "your-project",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "1:..."
-};
-*/
-if(!firebaseConfig || typeof firebaseConfig !== 'object'){
-  alert('لطفاً firebaseConfig را در کد جایگزین کن (راهنما در پیام بالایی).');
-}
+  // ---------- تنظیم Supabase ----------
+  const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+  const SUPABASE_KEY = "YOUR-ANON-KEY"; // از Project Settings > API بگیر
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+  // ---------- ذخیره پیام ----------
+  document.getElementById("saveBtn").onclick = async () => {
+    const text = document.getElementById("text").value;
+    const fileInput = document.getElementById("file");
+    let fileUrl = null;
 
-const cfg = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const { data, error } = await supabase.storage
+        .from("uploads")
+        .upload(Date.now() + "_" + file.name, file, { upsert: true });
+      if (error) {
+        alert("خطا در آپلود فایل: " + error.message);
+        return;
+      }
+      fileUrl = `${SUPABASE_URL}/storage/v1/object/public/uploads/${data.path}`;
+    }
 
-let pc = null;
-let dc = null;
-let roomRef = null;
-let roomId = null;
-let isInitiator = false;
+    const { error: insertError } = await supabase
+      .from("messages")
+      .insert([{ text, file_url: fileUrl }]);
 
-const statusEl = document.getElementById('status');
-const roomIdEl = document.getElementById('roomId');
-const chatSection = document.getElementById('chatSection');
-const messagesEl = document.getElementById('messages');
-
-function logStatus(s){ statusEl.textContent = s; }
-function appendMessage(t, who='other'){
-  const d = document.createElement('div');
-  d.className = 'msg ' + (who === 'me' ? 'mine' : 'other');
-  d.textContent = t;
-  messagesEl.appendChild(d);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-function makeId(){
-  return Math.floor(100000 + Math.random()*900000).toString(); // 6-digit
-}
-
-function createPeer(){
-  pc = new RTCPeerConnection(cfg);
-  pc.onicecandidate = event => {
-    if(event.candidate){
-      const c = event.candidate.toJSON();
-      const candRef = roomRef.child(isInitiator ? 'offerCandidates' : 'answerCandidates').push();
-      candRef.set(c).catch(console.error);
+    if (insertError) {
+      alert("خطا در ذخیره پیام: " + insertError.message);
+    } else {
+      document.getElementById("text").value = "";
+      fileInput.value = "";
+      loadMessages();
     }
   };
-  pc.onconnectionstatechange = () => {
-    logStatus(pc.connectionState);
-  };
-  pc.ondatachannel = ev => {
-    dc = ev.channel;
-    setupDC();
-  };
-}
 
-function setupDC(){
-  if(!dc) return;
-  dc.onopen = () => {
-    logStatus('connected');
-    chatSection.style.display = 'block';
-    appendMessage('** کانکشن باز شد **', 'other');
-  };
-  dc.onmessage = ev => {
-    try{
-      const payload = JSON.parse(ev.data);
-      appendMessage(payload.name + ': ' + payload.msg, 'other');
-    }catch(e){
-      appendMessage(ev.data, 'other');
+  // ---------- نمایش پیام‌ها ----------
+  async function loadMessages() {
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.log(error);
+      return;
     }
-  };
-  dc.onclose = () => {
-    logStatus('closed');
-  };
-}
+    const container = document.getElementById("messages");
+    container.innerHTML = "";
+    data.forEach(msg => {
+      const div = document.createElement("div");
+      div.className = "msg";
+      div.innerHTML = `<p>${msg.text || ""}</p>` +
+        (msg.file_url ? `<a href="${msg.file_url}" target="_blank">📎 فایل</a>` : "");
+      container.appendChild(div);
+    });
+  }
 
-/* ساخت روم (Initiator) */
-document.getElementById('createBtn').onclick = async () => {
-  const name = document.getElementById('name').value.trim() || 'me';
-  isInitiator = true;
-  roomId = makeId();
-  roomIdEl.textContent = roomId;
-  roomRef = db.ref('rooms/' + roomId);
-  // پاک کن هر چیزی که از قبل بود (برای تست)
-  await roomRef.remove().catch(()=>{});
-  createPeer();
-  dc = pc.createDataChannel('chat');
-  setupDC();
-
-  const offerDesc = await pc.createOffer();
-  await pc.setLocalDescription(offerDesc);
-  await roomRef.child('offer').set(offerDesc.toJSON());
-
-  // گوش بده برای candidate های answer
-  roomRef.child('answer').on('value', async snap => {
-    const val = snap.val();
-    if(val && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(val);
-    }
-  });
-
-  roomRef.child('answerCandidates').on('child_added', snap => {
-    const c = snap.val();
-    if(c) pc.addIceCandidate(c).catch(console.error);
-  });
-
-  roomRef.child('offerCandidates').on('child_added', snap => {
-    // (optional) we could store our own candidates too; initiator already pushed them
-  });
-
-  logStatus('waiting for peer...');
-  alert('روم ساخته شد. کد روم را برای دوستت بفرست: ' + roomId);
-};
-
-/* پیوستن به روم (Receiver) */
-document.getElementById('joinBtn').onclick = async () => {
-  const rid = document.getElementById('roomInput').value.trim();
-  if(!rid || rid.length !== 6){ alert('یک کد 6 رقمی وارد کن'); return; }
-  roomId = rid;
-  roomIdEl.textContent = roomId;
-  roomRef = db.ref('rooms/' + roomId);
-
-  // بخون offer
-  const snap = await roomRef.child('offer').get();
-  if(!snap.exists()){ alert('روم پیدا نشد یا offer موجود نیست'); return; }
-
-  isInitiator = false;
-  createPeer();
-
-  // set remote (offer)
-  const offer = snap.val();
-  await pc.setRemoteDescription(offer);
-
-  // create answer
-  const answerDesc = await pc.createAnswer();
-  await pc.setLocalDescription(answerDesc);
-  await roomRef.child('answer').set(answerDesc.toJSON());
-
-  // گوش دادن به offerCandidates (اگر قبل از اتصال ارسالی شده باشند)
-  roomRef.child('offerCandidates').on('child_added', snap => {
-    const c = snap.val();
-    if(c) pc.addIceCandidate(c).catch(console.error);
-  });
-
-  // ارسال candidate های خود به answerCandidates
-  roomRef.child('answerCandidates').on('child_added', snap => {
-    // optional handling
-  });
-
-  // گوش بده برای candidate های initiator (در صورت اضافه شدن بعدی)
-  roomRef.child('offerCandidates').on('child_added', snap => {
-    const c = snap.val();
-    if(c) pc.addIceCandidate(c).catch(console.error);
-  });
-
-  // وقتی آماده شد
-  setupDC();
-
-  logStatus('connected? waiting...');
-  chatSection.style.display = 'block';
-  appendMessage('شما به روم پیوستید. در انتظار وصل شدن کانال...', 'me');
-};
-
-/* گوش دادن به candidateها برای initiator بعد از اینکه receiver جوابی گذاشت */
-if(true){
-  // Initiator should also subscribe to answerCandidates if it later exists.
-  // This subscription is set up after createBtn creates roomRef.
-  // For safety, set a periodic attach if roomRef already exists.
-  // We'll attach handler on createBtn and on successful join.
-}
-
-/* ارسال/نمایش پیام چت */
-document.getElementById('send').onclick = () => {
-  const v = document.getElementById('txt').value.trim();
-  if(!v) return;
-  if(!dc || dc.readyState !== 'open'){ alert('کانال باز نیست'); return; }
-  const payload = { name: document.getElementById('name').value.trim() || 'me', msg: v };
-  dc.send(JSON.stringify(payload));
-  appendMessage(payload.name + ': ' + payload.msg, 'me');
-  document.getElementById('txt').value = '';
-};
-
-/* اضافه کردن listener های candidate بعد از اینکه roomRef تعریف شد */
-function attachCandidateListeners(){
-  if(!roomRef) return;
-  // initiator listens for answerCandidates (others push)
-  roomRef.child('answerCandidates').on('child_added', snap => {
-    const c = snap.val();
-    if(c) pc.addIceCandidate(c).catch(console.error);
-  });
-  // receiver listens for offerCandidates (already added)
-  roomRef.child('offerCandidates').on('child_added', snap => {
-    const c = snap.val();
-    if(c) pc.addIceCandidate(c).catch(console.error);
-  });
-}
-
-// هر بار که roomRef ست شد، listener ها رو وصل کن
-const origCreateBtn = document.getElementById('createBtn');
-const wrappedCreate = origCreateBtn.onclick;
-origCreateBtn.onclick = async function(evt){
-  await wrappedCreate.call(this, evt);
-  attachCandidateListeners();
-};
-// joinBtn هم بسته‌بندی کن
-const origJoinBtn = document.getElementById('joinBtn');
-const wrappedJoin = origJoinBtn.onclick;
-origJoinBtn.onclick = async function(evt){
+  loadMessages();
+</script>
+</body>
+</html>
