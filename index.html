@@ -1,22 +1,41 @@
-<script>
-// این بخش رو کامل می‌فهمی - شبیه پایتونه
-function addTask() {
-    // اینجا مثل پایتون متغیر تعریف می‌کنیم
-    const task = document.getElementById('taskInput').value;
-    
-    // شرط - دقیقاً مثل پایتون
-    if (task.length > 0) {
-        const list = document.getElementById('taskList');
-        // اینجا یه چیز جدید یاد می‌گیری - اضافه کردن به HTML
-        list.innerHTML = list.innerHTML + '<li>' + task + '</li>';
-    }
-}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>داشبورد شخصی من</title>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .card { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>داشبورد شخصی من</h1>
+        
+        <div class="card">
+            <h3>لیست کارهای امروز</h3>
+            <input type="text" id="taskInput" placeholder="کار جدید...">
+            <button onclick="addTask()">اضافه کردن</button>
+            <ul id="taskList"></ul>
+        </div>
 
-// این تابع رو هم می‌فهمی
-function startWaterReminder() {
-    // حلقهٔ زمان‌بندی شده - هر ۱ ساعت
-    setInterval(function() {
-        alert('💧 وقت نوشیدن آب است!');  // مثل print در پایتون
-    }, 60 * 60 * 1000);  // ۱ ساعت به میلی‌ثانیه
-}
-</script>
+        <div class="card">
+            <h3>یادآور نوشیدن آب</h3>
+            <button onclick="startWaterReminder()">فعال‌سازی یادآور</button>
+        </div>
+    </div>
+
+    <script>
+        function addTask() {
+            const task = document.getElementById('taskInput').value;
+            const list = document.getElementById('taskList');
+            list.innerHTML += `<li>${task}</li>`;
+        }
+
+        function startWaterReminder() {
+            setInterval(() => {
+                alert('💧 وقت نوشیدن آب است!');
+            }, 60 * 60 * 1000); // هر 1 ساعت
+        }
+    </script>
+</body>
+</html>
