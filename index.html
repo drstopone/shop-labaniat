@@ -1,110 +1,200 @@
 <!doctype html>
 <html lang="fa">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>گرده-گل</title>
-  <style>
-    body {
-      font-family: Tahoma, Arial, sans-serif;
-      direction: rtl;
-      background: #f9f9f9;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 700px;
-      margin: 20px auto;
-      background: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .product-img {
-      width: 100%;
-      max-height: 300px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-    h1 {
-      font-size: 22px;
-      margin: 0 0 10px;
-    }
-    .price {
-      color: #e67e22;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-    h3 {
-      margin-top: 20px;
-      font-size: 18px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 5px;
-    }
-    p {
-      line-height: 1.7;
-      color: #444;
-      font-size: 15px;
-    }
-    .contact {
-      margin-top: 25px;
-      display: flex;
-      gap: 10px;
-    }
-    .btn {
-      flex: 1;
-      text-align: center;
-      background: #3498db;
-      color: #fff;
-      padding: 10px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 14px;
-    }
-    .btn.tel { background: #2ecc71; }
-    .btn.telegram { background: #24a0ed; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>چت P2P با WebRTC — بدون سرور (برای GitHub Pages)</title>
+<style>
+  body{font-family: Tahoma, Arial;direction: rtl;padding:16px;max-width:900px;margin:0 auto}
+  textarea{width:100%;height:120px;font-family:monospace}
+  input,button,select{padding:8px;margin:6px 0}
+  #messages{border:1px solid #ddd;height:300px;overflow:auto;padding:8px;background:#fff}
+  .msg{padding:6px;border-radius:6px;margin:6px 0;max-width:80%}
+  .mine{background:#e0ffe0;margin-left:auto}
+  .other{background:#f0f0f0;margin-right:auto}
+  .row{display:flex;gap:8px;align-items:center}
+  .small{font-size:12px;color:#666}
+</style>
 </head>
 <body>
-  <div class="container">
-    <img src="gardeh1.png" alt="نام محصول" class="product-img">
-    
-    <h3>خواص گرده گل</h3>
-    <p>گرده گل منبع غنی از ویتامین ها شامل گروه B، ویتامین C، ویتامین A و ویتامین E است که به تقویت سیستم ایمنی و بهبود وضعیت پوست و مو کمک می کند.
- گرده گل دارای مقدار قابل توجهی پروتئین، اسیدهای آمینه، کربوهیدرات و لیپید است که می تواند به افزایش انرژی، بهبود توان بدنی و کمک به بازسازی بافت ها کمک کند.
- مصرف گرده گل ممکن است اثرات ضدالتهابی، آنتی‌اکسیدانی و محافظت‌کننده قلبی-عروقی داشته باشد و در برخی منابع به بهبود هضم، تنظیم متابولیسم و کاهش خستگی اشاره شده است.</p>
+<h2>چت P2P (بدون سرور) — مناسب GitHub Pages</h2>
 
-    <h3>نحوه مصرف</h3>
-    <p>نحوه مصرف و دوز معمولی
-شروع با دوز کوچک روزانه برای ارزیابی تحمل بدنی متداول است؛ معمولاً از 1 گرم تا 2 قاشق چای‌خوری در روز شروع می کنند و به تدریج تا دوزهای بالاتر مانند 5 تا 10 گرم در روز افزایش می دهند بسته به هدف مصرف و تحمل فرد.
-گرده گل را می توان خام، روی غلات صبحانه، در ماست، در آبمیوه یا مخلوط با عسل مصرف کرد تا جذب و طعم بهتری داشته باشد.
-مصرف منظم و تدریجی بهتر از یکباره است و توصیه می شود در صورت مصرف برای اهداف درمانی یا با داروهای خاص، با پزشک مشورت شود.</p>
+<p class="small">نکته: برای تست، این صفحه را در دو تب/مرورگر باز کن یا آدرس را به دوستت بفرست. برای وصل شدن گزینهٔ «ایجاد آفر» یا «پاس کردن آفر» را استفاده کن (کپی/پیست دستی). این روش نیازی به ترمینال یا سرور ندارد.</p>
 
+<section>
+  <h3>۱) تنظیم و ایجاد اتصال</h3>
 
+  <div class="row">
+    <label>نام شما:</label>
+    <input id="myName" placeholder="مثلاً: sina" />
+    <button id="btnCreateOffer">ایجاد Offer (من starter هستم)</button>
+    <button id="btnCreateAnswerMode">من پاسخ می‌دم (Paste Offer)</button>
+  </div>
 
-    <h3>ترکیبات اصلی گرده گل</h3>
-    <p>پروتئین و اسیدهای آمینه: حدود قابل توجهی پروتئین و انواع اسیدهای آمینه ضروری برای بدن وجود دارد.
-ویتامین ها: گروه ویتامین های B، ویتامین C، ویتامین A و ویتامین E شناسایی شده اند.
-مواد معدنی و آنزیم ها: شامل کلسیم، منیزیم، پتاسیم، روی و آنزیم های گوارشی مفید است که به هضم و جذب کمک می کند.
-قندها و لیپیدها: کربوهیدرات های قابل دسترس و روغن های گیاهی در ساختار گرده وجود دارد که منبع سریع انرژی فراهم می کنند.
-ترکیبات فنولی و آنتی‌اکسیدان ها: فلاونوئیدها و ترکیبات فنولی که خواص آنتی‌اکسیدانی و محافظتی دارند در گرده یافت می شوند.
-</p>
-
-
-    <img src="gardeh2.png" alt="نام محصول" class="product-img">
-
-    <h3>نکات ایمنی و هشدارها</h3>
-    <p>نکات ایمنی و هشدارها
-فراد دارای سابقه آلرژی به محصولات زنبور یا گرده گیاهی باید از مصرف احتیاط کنند زیرا احتمال واکنش آلرژیک وجود دارد.
-برای کودکان، زنان باردار و شیرده یا افراد دارای بیماری های زمینه ای، قبل از مصرف با متخصص سلامت مشورت شود.</p>
-
-
-    <div class="contact">
-      <!-- <a href="+989363964898" class="btn tel">تماس مستقیم</a> -->
-      <!-- <a href="https://t.me/inthenameyou" class="btn telegram">تلگرام</a> -->
+  <div style="margin-top:8px">
+    <div><strong>Offer / Answer (متن را کپی/پیست کنید)</strong></div>
+    <textarea id="signalBox" placeholder="اینجا offer یا answer را paste کن"></textarea>
+    <div class="row">
+      <button id="btnPasteOffer">Paste Offer و ساخت Answer</button>
+      <button id="btnAcceptAnswer">Paste Answer برای کامل کردن اتصال</button>
+      <button id="btnClear">پاک کن</button>
     </div>
   </div>
+</section>
+
+<hr/>
+
+<section>
+  <h3>۲) چت</h3>
+  <div>وضعیت اتصال: <span id="status">قطع</span></div>
+  <div id="messages" aria-live="polite"></div>
+
+  <div style="margin-top:8px" class="row">
+    <input id="txt" placeholder="پیام..." style="flex:1" />
+    <button id="send">ارسال</button>
+  </div>
+</section>
+
+<script>
+/*
+  پیاده‌سازی WebRTC DataChannel با signaling دستی.
+  دستورالعمل سریع:
+  - کاربر A: اسم وارد کن -> دکمه "ایجاد Offer" -> متن offer در signalBox ظاهر می‌شه -> متن رو کپی کن و برای طرف مقابل بفرست
+  - کاربر B: صفحه رو باز کن -> نام وارد کن -> متن offer رو در signalBox پیست کن -> دکمه "Paste Offer و ساخت Answer" -> متن answer ساخته می‌شه -> answer را کپی و بفرست به A
+  - کاربر A: answer را در signalBox پیست کن -> دکمه "Paste Answer برای کامل کردن اتصال" -> اتصال برقرار می‌شه و می‌تونید چت کنید
+*/
+
+let pc = null;
+let dc = null;
+let isCaller = false;
+const cfg = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] }; // STUN عمومی برای NAT traversal
+
+const statusEl = document.getElementById('status');
+const messagesEl = document.getElementById('messages');
+const txt = document.getElementById('txt');
+const sendBtn = document.getElementById('send');
+const signalBox = document.getElementById('signalBox');
+const myNameInput = document.getElementById('myName');
+
+function logStatus(s){ statusEl.textContent = s; }
+
+function appendMessage(text, who='other'){
+  const d = document.createElement('div');
+  d.className = 'msg ' + (who === 'me' ? 'mine' : 'other');
+  d.textContent = text;
+  messagesEl.appendChild(d);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function createPeerConnection(){
+  pc = new RTCPeerConnection(cfg);
+  pc.onicecandidate = (e) => {
+    if(!e.candidate){
+      // when null candidate means gathering finished; but we handle full SDP as string
+    }
+  };
+  pc.onconnectionstatechange = () => {
+    logStatus(pc.connectionState);
+  };
+  pc.oniceconnectionstatechange = () => {
+    logStatus(pc.iceConnectionState);
+  };
+  pc.ondatachannel = (ev) => {
+    dc = ev.channel;
+    setupDataChannel();
+  };
+}
+
+function setupDataChannel(){
+  if(!dc) return;
+  dc.onopen = () => {
+    logStatus('connected');
+    appendMessage('** کانکشن باز شد **', 'other');
+  };
+  dc.onmessage = (ev) => {
+    let name = 'همتا';
+    try{
+      const parsed = JSON.parse(ev.data);
+      if(parsed.name && parsed.msg) appendMessage(parsed.name + ': ' + parsed.msg, 'other');
+      else appendMessage(ev.data, 'other');
+    }catch(e){
+      appendMessage(ev.data, 'other');
+    }
+  };
+  dc.onclose = () => {
+    logStatus('closed');
+  };
+}
+
+// Create Offer (caller)
+document.getElementById('btnCreateOffer').onclick = async () => {
+  isCaller = true;
+  const name = myNameInput.value.trim() || 'me';
+  createPeerConnection();
+  dc = pc.createDataChannel('chat');
+  setupDataChannel();
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  // wait a moment for ICE candidates to gather (we'll include current SDP; clients can still work)
+  setTimeout(() => {
+    signalBox.value = JSON.stringify(pc.localDescription);
+    appendMessage('Offer ایجاد شد — آن را کپی و برای همتا بفرست', 'me');
+  }, 500);
+};
+
+// Paste Offer and create Answer (callee)
+document.getElementById('btnPasteOffer').onclick = async () => {
+  try{
+    const obj = JSON.parse(signalBox.value.trim());
+    if(!obj || !obj.type) throw new Error('Offer معتبر نیست');
+    createPeerConnection();
+    await pc.setRemoteDescription(obj);
+    // create answer
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    // wait briefly to let ICE candidates gather
+    setTimeout(() => {
+      signalBox.value = JSON.stringify(pc.localDescription);
+      appendMessage('Answer ساخته شد — آن را کپی و برای ایجادکننده Offer ارسال کن', 'me');
+    }, 500);
+  }catch(e){
+    alert('خطا در پارس کردن Offer: ' + e.message);
+  }
+};
+
+// Paste Answer to complete (caller side)
+document.getElementById('btnAcceptAnswer').onclick = async () => {
+  try{
+    const obj = JSON.parse(signalBox.value.trim());
+    if(!obj || !obj.type) throw new Error('Answer معتبر نیست');
+    await pc.setRemoteDescription(obj);
+    appendMessage('Answer دریافت شد — اگر همه چیز خوب باشه کانکشن برقرار می‌شود', 'me');
+  }catch(e){
+    alert('خطا در پارس کردن Answer: ' + e.message);
+  }
+};
+
+document.getElementById('btnCreateAnswerMode').onclick = () => {
+  alert('در این حالت: offer را از طرف مقابل دریافت کن و آن را در کادر پیست کن، سپس دکمه‌ی مربوط به ساخت answer را بزن.');
+};
+
+document.getElementById('btnClear').onclick = () => { signalBox.value = ''; };
+
+sendBtn.onclick = () => {
+  const v = txt.value.trim();
+  if(!v) return;
+  if(!dc || dc.readyState !== 'open'){ alert('کانال باز نیست. اول اتصال را برقرار کن.'); return; }
+  const payload = { name: myNameInput.value.trim() || 'me', msg: v };
+  dc.send(JSON.stringify(payload));
+  appendMessage((payload.name ? payload.name + ': ' : '') + v, 'me');
+  txt.value = '';
+};
+
+// small UX: allow Enter to send
+txt.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendBtn.click(); } });
+
+// initial status
+logStatus('disconnected');
+</script>
 </body>
 </html>
