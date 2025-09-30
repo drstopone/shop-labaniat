@@ -1,13 +1,12 @@
 <!doctype html>
 <html lang="fa">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>چت P2P با WebRTC — بدون سرور (برای GitHub Pages)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>چت P2P با Room ID (Firebase Signaling)</title>
 <style>
   body{font-family: Tahoma, Arial;direction: rtl;padding:16px;max-width:900px;margin:0 auto}
-  textarea{width:100%;height:120px;font-family:monospace}
-  input,button,select{padding:8px;margin:6px 0}
+  input,button{padding:8px;margin:6px 0}
   #messages{border:1px solid #ddd;height:300px;overflow:auto;padding:8px;background:#fff}
   .msg{padding:6px;border-radius:6px;margin:6px 0;max-width:80%}
   .mine{background:#e0ffe0;margin-left:auto}
@@ -17,106 +16,115 @@
 </style>
 </head>
 <body>
-<h2>چت P2P (بدون سرور) — مناسب GitHub Pages</h2>
+<h2>چت P2P با Room ID (Firebase)</h2>
+<p class="small">برای اجرا: این فایل را در GitHub Pages آپلود کن. قبل از آن firebaseConfig را از کنسول Firebase جایگزین کن.</p>
 
-<p class="small">نکته: برای تست، این صفحه را در دو تب/مرورگر باز کن یا آدرس را به دوستت بفرست. برای وصل شدن گزینهٔ «ایجاد آفر» یا «پاس کردن آفر» را استفاده کن (کپی/پیست دستی). این روش نیازی به ترمینال یا سرور ندارد.</p>
+<div>
+  <label>نام شما:</label>
+  <input id="name" placeholder="مثلاً: sina" />
+</div>
 
-<section>
-  <h3>۱) تنظیم و ایجاد اتصال</h3>
+<div class="row">
+  <button id="createBtn">ساختن روم جدید (من Starter)</button>
+  <input id="roomInput" placeholder="یا وارد کن: 6 رقم" style="width:120px"/>
+  <button id="joinBtn">پیوستن به روم</button>
+</div>
 
-  <div class="row">
-    <label>نام شما:</label>
-    <input id="myName" placeholder="مثلاً: sina" />
-    <button id="btnCreateOffer">ایجاد Offer (من starter هستم)</button>
-    <button id="btnCreateAnswerMode">من پاسخ می‌دم (Paste Offer)</button>
-  </div>
-
-  <div style="margin-top:8px">
-    <div><strong>Offer / Answer (متن را کپی/پیست کنید)</strong></div>
-    <textarea id="signalBox" placeholder="اینجا offer یا answer را paste کن"></textarea>
-    <div class="row">
-      <button id="btnPasteOffer">Paste Offer و ساخت Answer</button>
-      <button id="btnAcceptAnswer">Paste Answer برای کامل کردن اتصال</button>
-      <button id="btnClear">پاک کن</button>
-    </div>
-  </div>
-</section>
+<div style="margin-top:8px">
+  <div>کد روم فعلی: <strong id="roomId">—</strong></div>
+  <div>وضعیت: <span id="status">قطع</span></div>
+</div>
 
 <hr/>
 
-<section>
-  <h3>۲) چت</h3>
-  <div>وضعیت اتصال: <span id="status">قطع</span></div>
+<div id="chatSection" style="display:none">
   <div id="messages" aria-live="polite"></div>
-
-  <div style="margin-top:8px" class="row">
-    <input id="txt" placeholder="پیام..." style="flex:1" />
+  <div class="row" style="margin-top:8px">
+    <input id="txt" placeholder="پیام..." style="flex:1"/>
     <button id="send">ارسال</button>
   </div>
-</section>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script>
-/*
-  پیاده‌سازی WebRTC DataChannel با signaling دستی.
-  دستورالعمل سریع:
-  - کاربر A: اسم وارد کن -> دکمه "ایجاد Offer" -> متن offer در signalBox ظاهر می‌شه -> متن رو کپی کن و برای طرف مقابل بفرست
-  - کاربر B: صفحه رو باز کن -> نام وارد کن -> متن offer رو در signalBox پیست کن -> دکمه "Paste Offer و ساخت Answer" -> متن answer ساخته می‌شه -> answer را کپی و بفرست به A
-  - کاربر A: answer را در signalBox پیست کن -> دکمه "Paste Answer برای کامل کردن اتصال" -> اتصال برقرار می‌شه و می‌تونید چت کنید
+/* ====== جایگزین کن با firebaseConfig که از کنسول می‌گیری ====== */
+const firebaseConfig = /* PASTE YOUR FIREBASE CONFIG HERE */;
+/* مثال:
+const firebaseConfig = {
+  apiKey: "AIza....",
+  authDomain: "your-project.firebaseapp.com",
+  databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+  projectId: "your-project",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "1:..."
+};
 */
+if(!firebaseConfig || typeof firebaseConfig !== 'object'){
+  alert('لطفاً firebaseConfig را در کد جایگزین کن (راهنما در پیام بالایی).');
+}
+
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const cfg = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
 let pc = null;
 let dc = null;
-let isCaller = false;
-const cfg = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] }; // STUN عمومی برای NAT traversal
+let roomRef = null;
+let roomId = null;
+let isInitiator = false;
 
 const statusEl = document.getElementById('status');
+const roomIdEl = document.getElementById('roomId');
+const chatSection = document.getElementById('chatSection');
 const messagesEl = document.getElementById('messages');
-const txt = document.getElementById('txt');
-const sendBtn = document.getElementById('send');
-const signalBox = document.getElementById('signalBox');
-const myNameInput = document.getElementById('myName');
 
 function logStatus(s){ statusEl.textContent = s; }
-
-function appendMessage(text, who='other'){
+function appendMessage(t, who='other'){
   const d = document.createElement('div');
   d.className = 'msg ' + (who === 'me' ? 'mine' : 'other');
-  d.textContent = text;
+  d.textContent = t;
   messagesEl.appendChild(d);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-function createPeerConnection(){
+function makeId(){
+  return Math.floor(100000 + Math.random()*900000).toString(); // 6-digit
+}
+
+function createPeer(){
   pc = new RTCPeerConnection(cfg);
-  pc.onicecandidate = (e) => {
-    if(!e.candidate){
-      // when null candidate means gathering finished; but we handle full SDP as string
+  pc.onicecandidate = event => {
+    if(event.candidate){
+      const c = event.candidate.toJSON();
+      const candRef = roomRef.child(isInitiator ? 'offerCandidates' : 'answerCandidates').push();
+      candRef.set(c).catch(console.error);
     }
   };
   pc.onconnectionstatechange = () => {
     logStatus(pc.connectionState);
   };
-  pc.oniceconnectionstatechange = () => {
-    logStatus(pc.iceConnectionState);
-  };
-  pc.ondatachannel = (ev) => {
+  pc.ondatachannel = ev => {
     dc = ev.channel;
-    setupDataChannel();
+    setupDC();
   };
 }
 
-function setupDataChannel(){
+function setupDC(){
   if(!dc) return;
   dc.onopen = () => {
     logStatus('connected');
+    chatSection.style.display = 'block';
     appendMessage('** کانکشن باز شد **', 'other');
   };
-  dc.onmessage = (ev) => {
-    let name = 'همتا';
+  dc.onmessage = ev => {
     try{
-      const parsed = JSON.parse(ev.data);
-      if(parsed.name && parsed.msg) appendMessage(parsed.name + ': ' + parsed.msg, 'other');
-      else appendMessage(ev.data, 'other');
+      const payload = JSON.parse(ev.data);
+      appendMessage(payload.name + ': ' + payload.msg, 'other');
     }catch(e){
       appendMessage(ev.data, 'other');
     }
@@ -126,75 +134,135 @@ function setupDataChannel(){
   };
 }
 
-// Create Offer (caller)
-document.getElementById('btnCreateOffer').onclick = async () => {
-  isCaller = true;
-  const name = myNameInput.value.trim() || 'me';
-  createPeerConnection();
+/* ساخت روم (Initiator) */
+document.getElementById('createBtn').onclick = async () => {
+  const name = document.getElementById('name').value.trim() || 'me';
+  isInitiator = true;
+  roomId = makeId();
+  roomIdEl.textContent = roomId;
+  roomRef = db.ref('rooms/' + roomId);
+  // پاک کن هر چیزی که از قبل بود (برای تست)
+  await roomRef.remove().catch(()=>{});
+  createPeer();
   dc = pc.createDataChannel('chat');
-  setupDataChannel();
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  // wait a moment for ICE candidates to gather (we'll include current SDP; clients can still work)
-  setTimeout(() => {
-    signalBox.value = JSON.stringify(pc.localDescription);
-    appendMessage('Offer ایجاد شد — آن را کپی و برای همتا بفرست', 'me');
-  }, 500);
+  setupDC();
+
+  const offerDesc = await pc.createOffer();
+  await pc.setLocalDescription(offerDesc);
+  await roomRef.child('offer').set(offerDesc.toJSON());
+
+  // گوش بده برای candidate های answer
+  roomRef.child('answer').on('value', async snap => {
+    const val = snap.val();
+    if(val && !pc.currentRemoteDescription){
+      await pc.setRemoteDescription(val);
+    }
+  });
+
+  roomRef.child('answerCandidates').on('child_added', snap => {
+    const c = snap.val();
+    if(c) pc.addIceCandidate(c).catch(console.error);
+  });
+
+  roomRef.child('offerCandidates').on('child_added', snap => {
+    // (optional) we could store our own candidates too; initiator already pushed them
+  });
+
+  logStatus('waiting for peer...');
+  alert('روم ساخته شد. کد روم را برای دوستت بفرست: ' + roomId);
 };
 
-// Paste Offer and create Answer (callee)
-document.getElementById('btnPasteOffer').onclick = async () => {
-  try{
-    const obj = JSON.parse(signalBox.value.trim());
-    if(!obj || !obj.type) throw new Error('Offer معتبر نیست');
-    createPeerConnection();
-    await pc.setRemoteDescription(obj);
-    // create answer
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    // wait briefly to let ICE candidates gather
-    setTimeout(() => {
-      signalBox.value = JSON.stringify(pc.localDescription);
-      appendMessage('Answer ساخته شد — آن را کپی و برای ایجادکننده Offer ارسال کن', 'me');
-    }, 500);
-  }catch(e){
-    alert('خطا در پارس کردن Offer: ' + e.message);
-  }
+/* پیوستن به روم (Receiver) */
+document.getElementById('joinBtn').onclick = async () => {
+  const rid = document.getElementById('roomInput').value.trim();
+  if(!rid || rid.length !== 6){ alert('یک کد 6 رقمی وارد کن'); return; }
+  roomId = rid;
+  roomIdEl.textContent = roomId;
+  roomRef = db.ref('rooms/' + roomId);
+
+  // بخون offer
+  const snap = await roomRef.child('offer').get();
+  if(!snap.exists()){ alert('روم پیدا نشد یا offer موجود نیست'); return; }
+
+  isInitiator = false;
+  createPeer();
+
+  // set remote (offer)
+  const offer = snap.val();
+  await pc.setRemoteDescription(offer);
+
+  // create answer
+  const answerDesc = await pc.createAnswer();
+  await pc.setLocalDescription(answerDesc);
+  await roomRef.child('answer').set(answerDesc.toJSON());
+
+  // گوش دادن به offerCandidates (اگر قبل از اتصال ارسالی شده باشند)
+  roomRef.child('offerCandidates').on('child_added', snap => {
+    const c = snap.val();
+    if(c) pc.addIceCandidate(c).catch(console.error);
+  });
+
+  // ارسال candidate های خود به answerCandidates
+  roomRef.child('answerCandidates').on('child_added', snap => {
+    // optional handling
+  });
+
+  // گوش بده برای candidate های initiator (در صورت اضافه شدن بعدی)
+  roomRef.child('offerCandidates').on('child_added', snap => {
+    const c = snap.val();
+    if(c) pc.addIceCandidate(c).catch(console.error);
+  });
+
+  // وقتی آماده شد
+  setupDC();
+
+  logStatus('connected? waiting...');
+  chatSection.style.display = 'block';
+  appendMessage('شما به روم پیوستید. در انتظار وصل شدن کانال...', 'me');
 };
 
-// Paste Answer to complete (caller side)
-document.getElementById('btnAcceptAnswer').onclick = async () => {
-  try{
-    const obj = JSON.parse(signalBox.value.trim());
-    if(!obj || !obj.type) throw new Error('Answer معتبر نیست');
-    await pc.setRemoteDescription(obj);
-    appendMessage('Answer دریافت شد — اگر همه چیز خوب باشه کانکشن برقرار می‌شود', 'me');
-  }catch(e){
-    alert('خطا در پارس کردن Answer: ' + e.message);
-  }
-};
+/* گوش دادن به candidateها برای initiator بعد از اینکه receiver جوابی گذاشت */
+if(true){
+  // Initiator should also subscribe to answerCandidates if it later exists.
+  // This subscription is set up after createBtn creates roomRef.
+  // For safety, set a periodic attach if roomRef already exists.
+  // We'll attach handler on createBtn and on successful join.
+}
 
-document.getElementById('btnCreateAnswerMode').onclick = () => {
-  alert('در این حالت: offer را از طرف مقابل دریافت کن و آن را در کادر پیست کن، سپس دکمه‌ی مربوط به ساخت answer را بزن.');
-};
-
-document.getElementById('btnClear').onclick = () => { signalBox.value = ''; };
-
-sendBtn.onclick = () => {
-  const v = txt.value.trim();
+/* ارسال/نمایش پیام چت */
+document.getElementById('send').onclick = () => {
+  const v = document.getElementById('txt').value.trim();
   if(!v) return;
-  if(!dc || dc.readyState !== 'open'){ alert('کانال باز نیست. اول اتصال را برقرار کن.'); return; }
-  const payload = { name: myNameInput.value.trim() || 'me', msg: v };
+  if(!dc || dc.readyState !== 'open'){ alert('کانال باز نیست'); return; }
+  const payload = { name: document.getElementById('name').value.trim() || 'me', msg: v };
   dc.send(JSON.stringify(payload));
-  appendMessage((payload.name ? payload.name + ': ' : '') + v, 'me');
-  txt.value = '';
+  appendMessage(payload.name + ': ' + payload.msg, 'me');
+  document.getElementById('txt').value = '';
 };
 
-// small UX: allow Enter to send
-txt.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); sendBtn.click(); } });
+/* اضافه کردن listener های candidate بعد از اینکه roomRef تعریف شد */
+function attachCandidateListeners(){
+  if(!roomRef) return;
+  // initiator listens for answerCandidates (others push)
+  roomRef.child('answerCandidates').on('child_added', snap => {
+    const c = snap.val();
+    if(c) pc.addIceCandidate(c).catch(console.error);
+  });
+  // receiver listens for offerCandidates (already added)
+  roomRef.child('offerCandidates').on('child_added', snap => {
+    const c = snap.val();
+    if(c) pc.addIceCandidate(c).catch(console.error);
+  });
+}
 
-// initial status
-logStatus('disconnected');
-</script>
-</body>
-</html>
+// هر بار که roomRef ست شد، listener ها رو وصل کن
+const origCreateBtn = document.getElementById('createBtn');
+const wrappedCreate = origCreateBtn.onclick;
+origCreateBtn.onclick = async function(evt){
+  await wrappedCreate.call(this, evt);
+  attachCandidateListeners();
+};
+// joinBtn هم بسته‌بندی کن
+const origJoinBtn = document.getElementById('joinBtn');
+const wrappedJoin = origJoinBtn.onclick;
+origJoinBtn.onclick = async function(evt){
