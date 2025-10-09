@@ -42,9 +42,8 @@ function addMessage(text, sender) {
 }
     else{
     messageDiv.textContent = text;
-
-    return messageDiv;
 }
+    return messageDiv;
 }
 
 
