@@ -87,12 +87,11 @@ function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
     
-    // 🔥 اصلاح: استفاده از رشته معمولی به جای template literal
-    messageDiv.className = 'message ' + sender + '-message';
+    // 🔥 اصلاح: استفاده از template literal صحیح
+    messageDiv.className = message ${sender}-message;
     
     // اضافه کردن دکمه کپی به کدها
-    if ( typeof text === 'string' && ( text . includes ( '<pre' ) text. includes ( 'code-container' ) text. includes ( 'inline-code' ) ) )
- {
+    if (typeof text === 'string' && (text.includes('<pre')  text.includes('code-container')  text.includes('inline-code'))) {
         messageDiv.innerHTML = addCopyButtonToCode(text);
     } else {
         messageDiv.innerHTML = text;
@@ -125,7 +124,7 @@ function addCopyButtonToCode(htmlContent) {
         // اضافه کردن دکمه کپی به کدهای با language
         processedContent = processedContent.replace(
             /<pre><code data-language="([^"]*)">([\s\S]*?)<\/code><\/pre>/g,
-                '<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre><code data-language="$1">$2</code></pre></div>'
+            '<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre><code data-language="$1">$2</code></pre></div>'
         );
     }
     
@@ -199,8 +198,8 @@ function loadChatHistory() {
         messages.forEach(msg => {
             const messageDiv = document.createElement('div');
             
-            // 🔥 اصلاح: استفاده از رشته معمولی
-            messageDiv.className = 'message ' + msg.sender + '-message';
+            // 🔥 اصلاح: استفاده از template literal صحیح
+            messageDiv.className = message ${msg.sender}-message;
             messageDiv.innerHTML = msg.text;
             chatContainer.appendChild(messageDiv);
         });
