@@ -1,6 +1,8 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import requests
+import re
+import html
 
 class handler(BaseHTTPRequestHandler):
     
@@ -10,6 +12,16 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
+
+    def markdown_to_html(self, text):
+        if not text:
+            return text
+        text = html.escape(text)
+        text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+        text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+        text = re.sub(r'‘(.*?)‘', r'<code>\1</code>', text)
+        text = text.replace('\n', '<br>')
+        return text
     
     def do_POST(self):
         try:
