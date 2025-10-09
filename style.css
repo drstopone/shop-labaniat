@@ -110,44 +110,6 @@ button:hover {
     color: #4a5568;
 }
 
-/* استایل برای کد */
-.message code {
-    background: #f1f5f9;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-family: 'Courier New', Monaco, 'Cascadia Code', monospace;
-    color: #dc2626;
-    border: 1px solid #e2e8f0;
-    font-size: 0.9em;
-    display: inline-block;
-    margin: 2px 0;
-}
-
-/* برای پیام‌های کاربر */
-.message.user-message code {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fef3c7;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* برای بلاک‌های کد بزرگ‌تر */
-.message pre {
-    background: #1e293b;
-    color: #f8fafc;
-    padding: 15px;
-    border-radius: 8px;
-    overflow-x: auto;
-    margin: 10px 0;
-    border: 1px solid #334155;
-}
-
-.message pre code {
-    background: none;
-    padding: 0;
-    border: none;
-    color: inherit;
-    font-size: 0.95em;
-}
 
 /* برای پیام‌های کاربر */
 .message.user-message strong {
@@ -158,13 +120,52 @@ button:hover {
     color: #e2e8f0;
 }
 
-.message.user-message code {
-    background: rgba(255,255,255,0.2);
-    color: white;
-    border: 1px solid rgba(255,255,255,0.3);
-}
 
 .message a {
     color: #3182ce;
     text-decoration: underline;
+}
+
+/* استایل برای کدهای قابل کپی */
+.message code {
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: 'Courier New', Monaco, 'Cascadia Code', monospace;
+    color: #dc2626;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9em;
+    display: inline-block;
+    margin: 2px 0;
+    cursor: text;
+    user-select: all;
+    -webkit-user-select: all;
+    -moz-user-select: all;
+    -ms-user-select: all;
+}
+
+.message code:hover {
+    background: #e2e8f0;
+}
+
+/* برای پیام‌های کاربر */
+.message.user-message code {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fef3c7;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    user-select: all;
+}
+
+/* استایل برای بلاک کد */
+.message pre code {
+    display: block;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #334155;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    user-select: all;
 }
