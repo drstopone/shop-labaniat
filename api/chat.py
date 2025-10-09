@@ -1,4 +1,119 @@
-print(f"⚠️ خطا در تبدیل Markdown: {e}")
+from http.server import BaseHTTPRequestHandler
+import json
+import requests
+import re
+import html
+import os
+
+class handler(BaseHTTPRequestHandler):
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+    
+    def is_real_code(self, text):
+        """تشخیص اینکه آیا متن واقعاً کد برنامه‌نویسی است"""
+        if not text or not text.strip():
+            return False
+        
+        text = text.strip()
+        
+        # نشانگرهای کد برنامه‌نویسی
+        code_indicators = [
+            # کلمات کلیدی برنامه‌نویسی
+            'function', 'def ', 'class ', 'import ', 'export ', 'const ', 'let ', 'var ',
+            'if ', 'for ', 'while ', 'return ', 'print', 'console.log',
+            '#include', 'using ', 'namespace ', 'public ', 'private ', 'protected ',
+            '<html', '<div', '<script', '<style', '<?php', '<?=', '<?',
+            'SELECT ', 'INSERT ', 'UPDATE ', 'DELETE ', 'CREATE ', 'ALTER ',
+            'FROM ', 'WHERE ', 'JOIN ', 'GROUP BY ', 'ORDER BY '
+        ]
+        
+        # کاراکترهای خاص کد
+        code_chars = ['{', '}', ';', '=', '(', ')', '[', ']', '<', '>', '$', '@']
+        
+        # ساختارهای کد
+        code_patterns = [
+            r'^\s*\w+\s*\(.*\)\s*\{',  # توابع
+            r'^\s*\w+\s+[\w_]+\s*=',   # متغیرها
+            r'^\s*#',                   # کامنت‌های پایتون
+            r'^\s*//',                  # کامنت‌های JavaScript
+            r'^\s*/\*',                 # کامنت‌های چندخطی
+        ]
+        
+        # بررسی نشانگرها
+        text_lower = text.lower()
+        for indicator in code_indicators:
+            if indicator in text_lower:
+                return True
+        
+        # بررسی کاراکترهای خاص
+        code_char_count = sum(1 for char in code_chars if char in text)
+        if code_char_count >= 2:  # اگر حداقل ۲ کاراکتر کد داشته باشد
+            return True
+        
+        # بررسی الگوها
+        for pattern in code_patterns:
+            if re.search(pattern, text):
+                return True
+        
+        # اگر متن خیلی کوتاه است (کمتر از ۱۰ کاراکتر) احتمالاً کد نیست
+        if len(text) < 10:
+            return False
+        
+        return False
+    
+    def markdown_to_html(self, text):
+        """تبدیل مارک‌داون به HTML"""
+        if not text:
+            return text
+        
+        try:
+            # امن‌سازی HTML
+            text = html.escape(text)
+            
+            # بولد و ایتالیک
+            text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+            text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+            
+            # 🔥 تبدیل کدهای بلوک
+            def process_code_block(match):
+                language = match.group(1) or 'text'
+                code_content = match.group(2).strip()
+                return f'<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre><code data-language="{language}">{code_content}</code></pre></div>'
+            
+            text = re.sub(
+                r'```(\w+)?\s*([^`]+)```', 
+                process_code_block,
+                text, 
+                flags=re.DOTALL
+            )
+            
+            # 🔥 تبدیل کدهای inline
+            def process_inline_code(match):
+                code_content = match.group(1)
+                if self.is_real_code(code_content):
+                    return f'<code class="inline-code">{code_content}</code>'
+                else:
+                    return f'<span class="quoted-text">`{code_content}`</span>'
+            
+            text = re.sub(
+                r'`([^`\n]+)`', 
+                process_inline_code,
+                text
+            )
+            
+            # خطوط جدید به <br>
+            text = text.replace('\n', '<br>')
+            
+            return text
+        
+        except Exception as e:
+                    print(f"⚠️ خطا در تبدیل Markdown: {e}")
             return text
     
     def do_POST(self):
