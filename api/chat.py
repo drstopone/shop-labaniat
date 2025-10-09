@@ -16,20 +16,32 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def markdown_to_html(self, text):
+    # """تبدیل انواع backtick به HTML"""
         if not text:
             return text
         
-        # امن‌سازی HTML
+        # امن‌سازی HTML (اما backtickها رو حفظ کن)
         text = html.escape(text)
         
-        # متن به <strong>متن</strong>
+        # بولد و ایتالیک
         text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
-        
-        # *متن* به <em>متن</em>
         text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
         
-        # کد به <code>کد</code> - با انواع backtick
-        text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)
+        # 🔥 تبدیل انواع backtick به کد HTML:
+        
+        # ۱. backtick استاندارد: کد
+        text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+        
+        # ۲. backtick curly/smart: ‘کد’
+        text = re.sub(r'‘([^’]+)’', r'<code>\1</code>', text)
+        
+        # ۳. single quotation: 'کد'
+        text = re.sub(r"'([^']+)'", r'<code>\1</code>', text)
+        
+        # ۴. double quotation: "کد" (اگر احتمالاً استفاده کنه)
+        text = re.sub(r'"([^"]+)"', r'<code>\1</code>', text)
+        
+        # ۵. کد بلوک:    text = re.sub(r'```([^`]+)```', r'<pre><code>\1</code></pre>', text)
         
         # خطوط جدید به <br>
         text = text.replace('\n', '<br>')
