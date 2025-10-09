@@ -30,7 +30,8 @@ class handler(BaseHTTPRequestHandler):
             
             # 🔥 فقط کدهای واقعی رو تبدیل کن
             
-            # ۱. کدهای بلوک کامل:        text = re.sub(
+            # ۱. کدهای بلوک کامل:        
+            text = re.sub(
                 r'```(\w+)?\s*([^`]+)```', 
                 lambda m: f'<pre><code data-language="{m.group(1)}">{m.group(2)}</code></pre>' 
                 if self.is_real_code(m.group(2)) 
