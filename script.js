@@ -1,13 +1,53 @@
+// =============================================
+// ✉️ مدیریت ارسال و دریافت پیام
+// =============================================
+
+let lastMessageTime = 0;
+const MESSAGE_DELAY = 2000; // 2 ثانیه تأخیر بین پیام‌ها
+
+document.addEventListener('DOMContentLoaded', function() {
+    // رویدادهای چت
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+    document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    // بارگذاری تاریخچه از localStorage
+    loadChatHistory();
+    
+    console.log('✅ چت‌بات آماده است!');
+});
+
 async function sendMessage() {
+    const now = Date.now();
+    const timeSinceLastMessage = now - lastMessageTime;
+    
+    // بررسی تأخیر
+    if (timeSinceLastMessage < MESSAGE_DELAY) {
+        const remainingTime = (MESSAGE_DELAY - timeSinceLastMessage) / 1000;
+        addMessage(`لطفاً ${remainingTime.toFixed(1)} ثانیه صبر کن... ⏳`, 'bot');
+        return;
+    }
+    
+    lastMessageTime = now;
+    
     const userInput = document.getElementById('userInput');
     const message = userInput.value.trim();
     
     if (!message) return;
     
+    // غیرفعال کردن دکمه و اینپوت
+    userInput.disabled = true;
+    document.getElementById('sendButton').disabled = true;
+    
     addMessage(message, 'user');
     userInput.value = '';
     
     try {
+        // نمایش حالت "در حال تایپ"
+        const typingIndicator = addMessage('... در حال تایپ', 'bot');
+        
+        // ارسال به سرور
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
@@ -15,6 +55,11 @@ async function sendMessage() {
             },
             body: JSON.stringify({ message: message })
         });
+        
+        // حذف نشانگر "در حال تایپ"
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
         
         if (!response.ok) {
             throw new Error(`خطای سرور: ${response.status}`);
@@ -26,79 +71,143 @@ async function sendMessage() {
     } catch (error) {
         addMessage('⚠️ خطا در ارتباط با سرور', 'bot');
         console.error('Error:', error);
+    } finally {
+        // فعال کردن مجدد
+        userInput.disabled = false;
+        document.getElementById('sendButton').disabled = false;
+        userInput.focus();
     }
 }
+
+// =============================================
+// 🎨 مدیریت نمایش پیام‌ها
+// =============================================
 
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ${sender}-message';
+    messageDiv.className = message ${sender}-message;
     
-    // همیشه از innerHTML استفاده کن - مهم!
-    messageDiv.innerHTML = text;
+    // اضافه کردن دکمه کپی به کدها
+    if (text.includes('<pre') || text.includes('<code class="inline-code"')) {
+        messageDiv.innerHTML = addCopyButtonToCode(text);
+    } else {
+        messageDiv.innerHTML = text;
+    }
     
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
     // ذخیره در تاریخچه
-    //setTimeout(saveChatHistory, 100);
+    saveChatHistory();
     
     return messageDiv;
 }
 
-// اضافه کردن event listener برای دکمه‌های کپی
-document.addEventListener('DOMContentLoaded', function() {
-    // این تابع رو به صورت global تعریف کن
-    window.copyCode = async function(button) {
-        const codeContainer = button.parentElement;
-        const codeElement = codeContainer.querySelector('code, pre');
+// =============================================
+// 📋 مدیریت کپی کردن کد
+// =============================================
+
+function addCopyButtonToCode(htmlContent) {
+    // اضافه کردن دکمه کپی به کدهای بلوک
+    let processedContent = htmlContent.replace(
+        /<pre>([\s\S]*?)<\/pre>/g, 
+        '<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre>$1</pre></div>'
+    );
+    
+    // اضافه کردن دکمه کپی به کدهای با language
+    processedContent = processedContent.replace(
+        /<pre><code data-language="([^"]*)">([\s\S]*?)<\/code><\/pre>/g, 
+        '<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre><code data-language="$1">$2</code></pre></div>'
+    );
+    
+    return processedContent;
+}
+
+// تابع global برای کپی کردن کد
+window.copyCode = async function(button) {
+    const codeContainer = button.parentElement;
+    const codeElement = codeContainer.querySelector('code, pre');
+    
+    if (codeElement) {
+        const textToCopy = codeElement.textContent || codeElement.innerText;
         
-        if (codeElement) {
-            const textToCopy = codeElement.textContent || codeElement.innerText;
+        try {
+            await navigator.clipboard.writeText(textToCopy);
             
-            try {
-                await navigator.clipboard.writeText(textToCopy);
-                
-                // نمایش تأیید
-                button.textContent = '✅';
-                button.style.background = '#10b981';
-                
-                setTimeout(() => {
-                    button.textContent = '📋';
-                    button.style.background = '';
-                }, 2000);
-                
-            } catch (err) {
-                // روش fallback برای مرورگرهای قدیمی
-                const textArea = document.createElement('textarea');
-                textArea.value = textToCopy;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                
-                button.textContent = '✅';
-                setTimeout(() => {
-                    button.textContent = '📋';
-                }, 2000);
-            }
+            // نمایش تأیید
+            button.textContent = '✅';
+            button.style.background = '#10b981';
+            
+            setTimeout(() => {
+                button.textContent = '📋';
+                button.style.background = '';
+            }, 2000);
+            
+        } catch (err) {
+            // روش fallback برای مرورگرهای قدیمی
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            button.textContent = '✅';
+            setTimeout(() => {
+                button.textContent = '📋';
+            }, 2000);
         }
-    };
-});
-
-
-document.getElementById('userInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessage();
     }
-});
+}
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('چت‌بات آماده است!');
-});
+// =============================================
+// 💾 مدیریت تاریخچه ساده در localStorage
+// =============================================
 
-// اضافه کردن event listener به دکمه ارسال
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('sendButton').addEventListener('click', sendMessage);
-    console.log('چت‌بات آماده است!');
-});
+function saveChatHistory() {
+    const chatContainer = document.getElementById('chatContainer');
+    const messages = [];
+    
+    // جمع‌آوری تمام پیام‌ها
+    document.querySelectorAll('.message').forEach(msg => {
+        messages.push({
+            text: msg.innerHTML,
+            sender: msg.classList.contains('user-message') ? 'user' : 'bot',
+            time: new Date().toISOString()
+        });
+    });
+    
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+}
+
+function loadChatHistory() {
+    const saved = localStorage.getItem('chatHistory');
+    if (saved) {
+        const messages = JSON.parse(saved);
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.innerHTML = '';
+        
+        messages.forEach(msg => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = message ${msg.sender}-message;
+            messageDiv.innerHTML = msg.text;
+            chatContainer.appendChild(messageDiv);
+        });
+        
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        console.log('📂 چت بازیابی شد');
+    }
+}
+
+// =============================================
+// 🧹 پاک کردن تاریخچه چت
+// =============================================
+
+function clearChatHistory() {
+    if (confirm('آیا از پاک کردن تاریخچه چت مطمئن هستید؟')) {
+        localStorage.removeItem('chatHistory');
+        document.getElementById('chatContainer').innerHTML = '';
+        console.log('🗑️ تاریخچه چت پاک شد');
+    }
+}
