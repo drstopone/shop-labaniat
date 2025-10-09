@@ -16,7 +16,6 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def markdown_to_html(self, text):
-    """تبدیل Markdown ساده به HTML"""
         if not text:
             return text
         
