@@ -8,11 +8,11 @@ async function sendMessage() {
     addMessage(message, 'user');
     userInput.value = '';
     
-    // نمایش حالت "در حال تایپ..."
-    const typingIndicator = addMessage('... در حال تایپ', 'bot');
-    
     try {
-        // ارسال به سرور - استفاده از آدرس کامل
+        // نمایش حالت "در حال تایپ" (اختیاری)
+        const typingIndicator = addMessage('... در حال تایپ', 'bot');
+        
+        // ارسال به سرور
         const response = await fetch('https://' + window.location.hostname + '/api/chat', {
             method: 'POST',
             headers: {
@@ -21,8 +21,10 @@ async function sendMessage() {
             body: JSON.stringify({ message: message })
         });
         
-        // حذف نشانگر "در حال تایپ"
-        typingIndicator.remove();
+        // حذف نشانگر "در حال تایپ" اگر وجود دارد
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
         
         if (!response.ok) {
             throw new Error(`خطای سرور: ${response.status}`);
@@ -34,9 +36,7 @@ async function sendMessage() {
         addMessage(data.reply, 'bot');
         
     } catch (error) {
-        // حذف نشانگر "در حال تایپ" در صورت خطا
-        typingIndicator.remove();
-        addMessage('⚠️ خطا در ارتباط با سرور: ' + error.message, 'bot');
+        addMessage('⚠️ خطا در ارتباط با سرور: ' + error.toString(), 'bot');
         console.error('Error:', error);
     }
 }
@@ -51,7 +51,7 @@ function addMessage(text, sender) {
     // اسکرول به پایین
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
-    return messageDiv; // بازگشت عنصر برای مدیریت بهتر
+    return messageDiv;
 }
 
 // ارسال با دکمه Enter
@@ -61,7 +61,8 @@ document.getElementById('userInput').addEventListener('keypress', function(e) {
     }
 });
 
-// همچنین مطمئن شو المنت‌ها در DOM موجود هستند
+// وقتی صفحه کاملاً لود شد
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('صفحه آماده است!');
+    console.log('چت‌بات آماده است!');
+    addMessage('سلام! من چت‌بات هوش مصنوعی شما هستم. چطور می‌تونم کمک کنم؟', 'bot');
 });
