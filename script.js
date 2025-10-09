@@ -36,7 +36,17 @@ function addMessage(text, sender) {
     messageDiv.textContent = text;
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    if (text.includes('<') && text.includes('>')){
+    messageDiv.innerHTML = text;
 }
+    else{
+    messageDiv.textContent = text;
+
+    return messageDiv;
+}
+}
+
 
 document.getElementById('userInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
