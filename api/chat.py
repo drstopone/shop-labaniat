@@ -23,7 +23,7 @@ class handler(BaseHTTPRequestHandler):
             print(f"📨 پیام کاربر: {user_message}")
             
             # استفاده از Google Gemini
-            api_key = os.environ.get('GEMINI_API_KEY')
+            api_key = os.environ.get('AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs')
             
             if not api_key:
                 # اگر API Key نیست، پاسخ تستی بده
