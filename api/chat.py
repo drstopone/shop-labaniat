@@ -16,7 +16,7 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def markdown_to_html(self, text):
-        """تبدیل Markdown ساده به HTML"""
+    """تبدیل Markdown ساده به HTML"""
         if not text:
             return text
         
@@ -29,7 +29,7 @@ class handler(BaseHTTPRequestHandler):
         # *متن* به <em>متن</em>
         text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
         
-        # کد به <code>کد</code>
+        # کد به <code>کد</code> - با انواع backtick
         text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)
         
         # خطوط جدید به <br>
