@@ -16,75 +16,46 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def markdown_to_html(self, text):
-        #"""تبدیل هوشمند متن به HTML با تشخیص خودکار کد"""
+        #"""تبدیل و تعمیر Markdown ناقص به HTML"""
         if not text:
             return text
         
         # امن‌سازی HTML
         text = html.escape(text)
         
+        # 🔥 اول backtickهای ناقص رو تعمیر کنیم
+        text = self.fix_broken_backticks(text)
+        
         # بولد و ایتالیک
         text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
         text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
         
-        # 🔥 تشخیص خودکار کدهای برنامه‌نویسی
-        lines = text.split('\n')
-        formatted_lines = []
+        # backtick استاندارد: کد
+        text = re.sub(r'`([^`\n]+)`', r'<code class="inline-code">\1</code>', text)
         
-        for line in lines:
-            # اگر خط شبیه کد باشه
-            if self.looks_like_code(line):
-                formatted_lines.append(f'<code>{line}</code>')
-            else:
-                formatted_lines.append(line)
+        # کد بلوک:    text = re.sub(r'```(\w+)?\s*([^`]+)```', r'<pre><code data-language="\1">\2</code></pre>', text, flags=re.DOTALL)
         
-        text = '<br>'.join(formatted_lines)
-        
-        # تبدیل backtickهای باقی‌مانده
-        text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
-        
-        # تبدیل لیست‌های bullet point
-        text = re.sub(r'^\* (.*?)$', r'• \1', text, flags=re.MULTILINE)
+        # خطوط جدید به <br>
+        text = text.replace('\n', '<br>')
         
         return text
 
-    def looks_like_code(self, line):
-        #"""تشخیص اینکه آیا خط شبیه کد برنامه‌نویسی هست"""
-        line_clean = line.strip()
+    def fix_broken_backticks(self, text):
+        #"""تعمیر backtickهای ناقص Gemini"""
         
-        # الگوهای کد
-        code_patterns = [
-            # پایتون
-            r'^python\s*$',
-            r'^print\(.*\)\s*$',
-            r'^def\s+\w+',
-            r'^import\s+\w+',
-            r'^from\s+\w+',
-            r'^class\s+\w+',
-            
-            # جاوااسکریپت/باش
-            r'^bash\s*$',
-            r'^console\.log\(.*\)\s*$',
-            r'^function\s+\w+',
-            r'^const\s+\w+',
-            r'^let\s+\w+',
-            r'^var\s+\w+',
-            
-            # دستورات ترمینال
-            r'^\w+\.py\s*$',
-            r'^python\s+\w+\.py\s*$',
-            r'^\.\/\w+',
-            
-            # کدهای واضح
-            r'^[\w]+\.[\w]+\(.*\)\s*$',  # متد call
-            r'^[\w]+\(.*\)\s*$',         # تابع call
-        ]
+        # حالت ۱: ``python ->    text = re.sub(r'``(\w+)', r'```\1\n', text)
         
-        for pattern in code_patterns:
-            if re.search(pattern, line_clean, re.IGNORECASE):
-                return True
+        # حالت ۲: `\nprint("سلام دنیا")\n` -> ```python\nprint("سلام دنیا")\n    code_blocks = re.findall(r'`\s*\n([^`]+)\n\s*`', text)
+        for code in code_blocks:
+            # تشخیص زبان کد
+            language = 'python' if 'print(' in code else 'bash' if 'python ' in code else 'text'
+            fixed_block = f'```{language}\n{code}\n```'
+            text = text.replace(f'`\n{code}\n`', fixed_block)
         
-        return False
+        # حالت ۳: backtick تکی که بسته نشده
+        text = re.sub(r'`([^`\n]+)(?:\n|$)', r'<code>\1</code>', text)
+        
+        return text
     
     def do_POST(self):
         try:
