@@ -1,125 +1,6 @@
-// =============================================
-// ✉️ مدیریت ارسال و دریافت پیام
-// =============================================
-
-let lastMessageTime = 0;
-const MESSAGE_DELAY = 2000; // 2 ثانیه تأخیر بین پیام‌ها
-
-document.addEventListener('DOMContentLoaded', function() {
-    // رویدادهای چت
-    document.getElementById('sendButton').addEventListener('click', sendMessage);
-    document.getElementById('userInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendMessage();
-    });
-    
-    // بارگذاری تاریخچه از localStorage
-    loadChatHistory();
-    
-    console.log('✅ چت‌بات آماده است!');
-});
-
-async function sendMessage() {
-    const now = Date.now();
-    const timeSinceLastMessage = now - lastMessageTime;
-    
-    // بررسی تأخیر
-    if (timeSinceLastMessage < MESSAGE_DELAY) {
-        const remainingTime = (MESSAGE_DELAY - timeSinceLastMessage) / 1000;
-        addMessage(`لطفاً ${remainingTime.toFixed(1)} ثانیه صبر کن... ⏳`, 'bot');
-        return;
+'<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre><code data-language="$1">$2</code></pre></div>'
+        );
     }
-    
-    lastMessageTime = now;
-    
-    const userInput = document.getElementById('userInput');
-    const message = userInput.value.trim();
-    
-    if (!message) return;
-    
-    // غیرفعال کردن دکمه و اینپوت
-    userInput.disabled = true;
-    document.getElementById('sendButton').disabled = true;
-    
-    addMessage(message, 'user');
-    userInput.value = '';
-    
-    try {
-        // نمایش حالت "در حال تایپ"
-        const typingIndicator = addMessage('... در حال تایپ', 'bot');
-        
-        // ارسال به سرور
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: message })
-        });
-        
-        // حذف نشانگر "در حال تایپ"
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
-        
-        if (!response.ok) {
-            throw new Error(`خطای سرور: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        addMessage(data.reply, 'bot');
-        
-    } catch (error) {
-        addMessage('⚠️ خطا در ارتباط با سرور', 'bot');
-        console.error('Error:', error);
-    } finally {
-        // فعال کردن مجدد
-        userInput.disabled = false;
-        document.getElementById('sendButton').disabled = false;
-        userInput.focus();
-    }
-}
-
-// =============================================
-// 🎨 مدیریت نمایش پیام‌ها
-// =============================================
-
-function addMessage(text, sender) {
-    const chatContainer = document.getElementById('chatContainer');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ${sender}-message';
-    
-    // اضافه کردن دکمه کپی به کدها
-    if (text.includes('<pre') || text.includes('<code class="inline-code"')) {
-        messageDiv.innerHTML = addCopyButtonToCode(text);
-    } else {
-        messageDiv.innerHTML = text;
-    }
-    
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    
-    // ذخیره در تاریخچه
-    saveChatHistory();
-    
-    return messageDiv;
-}
-
-// =============================================
-// 📋 مدیریت کپی کردن کد
-// =============================================
-
-function addCopyButtonToCode(htmlContent) {
-    // اضافه کردن دکمه کپی به کدهای بلوک
-    let processedContent = htmlContent.replace(
-        /<pre>([\s\S]*?)<\/pre>/g, 
-        '<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre>$1</pre></div>'
-    );
-    
-    // اضافه کردن دکمه کپی به کدهای با language
-    processedContent = processedContent.replace(
-        /<pre><code data-language="([^"]*)">([\s\S]*?)<\/code><\/pre>/g, 
-        '<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre><code data-language="$1">$2</code></pre></div>'
-    );
     
     return processedContent;
 }
@@ -190,7 +71,9 @@ function loadChatHistory() {
         
         messages.forEach(msg => {
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ${msg.sender}-message';
+            
+            // 🔥 اصلاح: استفاده از رشته معمولی
+            messageDiv.className = 'message ' + msg.sender + '-message';
             messageDiv.innerHTML = msg.text;
             chatContainer.appendChild(messageDiv);
         });
