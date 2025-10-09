@@ -22,7 +22,7 @@ class handler(BaseHTTPRequestHandler):
             print(f"📨 پیام کاربر: {user_message}")
             
             # بررسی API Key
-            api_key = os.environ.get('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')
+            api_key = os.environ.get('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')
             if not api_key:
                 raise ValueError("API Key پیدا نشد")
             
