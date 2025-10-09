@@ -113,8 +113,8 @@ class handler(BaseHTTPRequestHandler):
             return text
         
         except Exception as e:
-                    print(f"⚠️ خطا در تبدیل Markdown: {e}")
-            return text
+            print(f"⚠️ خطا در تبدیل Markdown: {e}")
+        return text
     
     def do_POST(self):
         try:
