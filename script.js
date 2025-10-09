@@ -91,7 +91,8 @@ function addMessage(text, sender) {
     messageDiv.className = 'message ' + sender + '-message';
     
     // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre')  text.includes('code-container')  text.includes('inline-code'))) {
+    if ( typeof text === 'string' && ( text . includes ( '<pre' ) text. includes ( 'code-container' ) text. includes ( 'inline-code' ) ) )
+ {
         messageDiv.innerHTML = addCopyButtonToCode(text);
     } else {
         messageDiv.innerHTML = text;
