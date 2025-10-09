@@ -126,45 +126,73 @@ button:hover {
     text-decoration: underline;
 }
 
-/* استایل برای کدهای تشخیص خودکار */
-.message code {
-    background: #1e293b;
-    color: #f8fafc;
-    padding: 12px 15px;
-    border-radius: 8px;
-    font-family: 'Courier New', Monaco, 'Cascadia Code', monospace;
-    border: 1px solid #334155;
-    font-size: 0.95em;
-    display: block;
-    margin: 8px 0;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    user-select: all;
-    line-height: 1.5;
-}
-
-.message code::before {
-    content: "🖥️ کد:";
-    display: block;
-    font-family: system-ui;
-    font-size: 0.8em;
-    color: #94a3b8;
-    margin-bottom: 5px;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 3px;
-}
-
-/* برای کدهای کوچک inline */
-.message code:not(:has(br)) {
-    display: inline;
-    padding: 3px 6px;
-    margin: 0 2px;
+/* کدهای inline */
+.inline-code {
     background: #f1f5f9;
     color: #dc2626;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
     border: 1px solid #e2e8f0;
+    font-size: 0.9em;
+    display: inline;
+    margin: 0 1px;
 }
 
-.message code:not(:has(br))::before {
-    content: "";
-    display: none;
+/* بلاک کدهای کامل */
+.message pre {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.message pre code {
+    display: block;
+    padding: 15px;
+    font-family: 'Cascadia Code', 'Courier New', monospace;
+    font-size: 0.95em;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    user-select: all;
+}
+
+/* هدر برای بلاک کد */
+.message pre code::before {
+    content: attr(data-language);
+    display: block;
+    background: #334155;
+    color: #94a3b8;
+    padding: 8px 15px;
+    margin: -15px -15px 15px -15px;
+    font-family: system-ui;
+    font-size: 0.8em;
+    border-bottom: 1px solid #475569;
+    text-transform: uppercase;
+}
+
+/* اگر زبان مشخص نبود */
+.message pre code:not([data-language])::before {
+    content: "کد";
+}
+
+/* برای پیام‌های کاربر */
+.message.user-message .inline-code {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fef3c7;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* لیست‌های بولت */
+.message ul {
+    margin: 10px 0;
+    padding-right: 20px;
+}
+
+.message li {
+    margin: 5px 0;
+    line-height: 1.5;
 }
