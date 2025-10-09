@@ -16,37 +16,75 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def markdown_to_html(self, text):
-    # """تبدیل انواع backtick به HTML"""
+        """تبدیل هوشمند متن به HTML با تشخیص خودکار کد"""
         if not text:
             return text
         
-        # امن‌سازی HTML (اما backtickها رو حفظ کن)
+        # امن‌سازی HTML
         text = html.escape(text)
         
         # بولد و ایتالیک
         text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
         text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
         
-        # 🔥 تبدیل انواع backtick به کد HTML:
+        # 🔥 تشخیص خودکار کدهای برنامه‌نویسی
+        lines = text.split('\n')
+        formatted_lines = []
         
-        # ۱. backtick استاندارد: کد
+        for line in lines:
+            # اگر خط شبیه کد باشه
+            if self.looks_like_code(line):
+                formatted_lines.append(f'<code>{line}</code>')
+            else:
+                formatted_lines.append(line)
+        
+        text = '<br>'.join(formatted_lines)
+        
+        # تبدیل backtickهای باقی‌مانده
         text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
         
-        # ۲. backtick curly/smart: ‘کد’
-        text = re.sub(r'‘([^’]+)’', r'<code>\1</code>', text)
-        
-        # ۳. single quotation: 'کد'
-        text = re.sub(r"'([^']+)'", r'<code>\1</code>', text)
-        
-        # ۴. double quotation: "کد" (اگر احتمالاً استفاده کنه)
-        text = re.sub(r'"([^"]+)"', r'<code>\1</code>', text)
-        
-        # ۵. کد بلوک:    text = re.sub(r'```([^`]+)```', r'<pre><code>\1</code></pre>', text)
-        
-        # خطوط جدید به <br>
-        text = text.replace('\n', '<br>')
+        # تبدیل لیست‌های bullet point
+        text = re.sub(r'^\* (.*?)$', r'• \1', text, flags=re.MULTILINE)
         
         return text
+
+    def looks_like_code(self, line):
+        """تشخیص اینکه آیا خط شبیه کد برنامه‌نویسی هست"""
+        line_clean = line.strip()
+        
+        # الگوهای کد
+        code_patterns = [
+            # پایتون
+            r'^python\s*$',
+            r'^print\(.*\)\s*$',
+            r'^def\s+\w+',
+            r'^import\s+\w+',
+            r'^from\s+\w+',
+            r'^class\s+\w+',
+            
+            # جاوااسکریپت/باش
+            r'^bash\s*$',
+            r'^console\.log\(.*\)\s*$',
+            r'^function\s+\w+',
+            r'^const\s+\w+',
+            r'^let\s+\w+',
+            r'^var\s+\w+',
+            
+            # دستورات ترمینال
+            r'^\w+\.py\s*$',
+            r'^python\s+\w+\.py\s*$',
+            r'^\.\/\w+',
+            
+            # کدهای واضح
+            r'^[\w]+\.[\w]+\(.*\)\s*$',  # متد call
+            r'^[\w]+\(.*\)\s*$',         # تابع call
+        ]
+        
+        for pattern in code_patterns:
+            if re.search(pattern, line_clean, re.IGNORECASE):
+                return True
+        
+        return False
     
     def do_POST(self):
         try:
