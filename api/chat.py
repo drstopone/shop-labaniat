@@ -13,15 +13,27 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
-    def markdown_to_html(self, text):
-        if not text:
-            return text
-        text = html.escape(text)
-        text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
-        text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
-        text = re.sub(r'‘(.*?)‘', r'<code>\1</code>', text)
-        text = text.replace('\n', '<br>')
+def markdown_to_html(self, text):
+    """تبدیل Markdown ساده به HTML"""
+    if not text:
         return text
+    
+    # امن‌سازی HTML - مهم!
+    text = html.escape(text)
+    
+    # متن به <strong>متن</strong>
+    text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+    
+    # *متن* به <em>متن</em>
+    text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+    
+    # کد به <code>کد</code>
+    text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)
+    
+    # خطوط جدید به <br>
+    text = text.replace('\n', '<br>')
+    
+    return text
     
     def do_POST(self):
         try:
