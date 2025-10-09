@@ -32,17 +32,17 @@ async function sendMessage() {
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ${sender}-message';
-    messageDiv.textContent = text;
+    messageDiv.className = message ${sender}-message;
+    
+    // همیشه از innerHTML استفاده کن - مهم!
+    messageDiv.innerHTML = text;
+    
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
-
-    if (text.includes('<') && text.includes('>')){
-    messageDiv.innerHTML = text;
-}
-    else{
-    messageDiv.textContent = text;
-}
+    
+    // ذخیره در تاریخچه
+    setTimeout(saveChatHistory, 100);
+    
     return messageDiv;
 }
 
