@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import requests
 
 class handler(BaseHTTPRequestHandler):
     
@@ -21,58 +22,47 @@ class handler(BaseHTTPRequestHandler):
             user_message = request_data.get('message', '')
             print(f"📨 پیام کاربر: {user_message}")
             
-            # بررسی API Key
-            api_key = os.environ.get('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')
+            # استفاده از Google Gemini
+            api_key = os.environ.get('GEMINI_API_KEY')
+            
             if not api_key:
-                raise ValueError("API Key پیدا نشد")
-            
-            # ایمپورت openai - سازگار با نسخه‌های مختلف
-            try:
-                # روش جدید (نسخه >=1.0.0)
-                from openai import OpenAI
-                client = OpenAI(api_key=api_key)
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": user_message}
-                    ],
-                    max_tokens=150
-                )
-                bot_reply = response.choices[0].message.content
+                # اگر API Key نیست، پاسخ تستی بده
+                bot_reply = f"سلام! پیام '{user_message}' رو دریافت کردم. (در حال تست - API Key تنظیم نشده)"
+            else:
+                # ارسال به Google Gemini
+                url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={api_key}"
                 
-            except ImportError:
-                # روش قدیمی (نسخه <1.0.0)
-                import openai
-                openai.api_key = api_key
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": user_message}
-                    ],
-                    max_tokens=150
-                )
-                bot_reply = response.choices[0].message.content
+                data = {
+                    "contents": [{
+                        "parts": [{"text": user_message}]
+                    }]
+                }
+                
+                response = requests.post(url, json=data)
+                result = response.json()
+                
+                if response.status_code == 200:
+                    bot_reply = result['candidates'][0]['content']['parts'][0]['text']
+                    print("✅ پاسخ از Gemini دریافت شد")
+                else:
+                    bot_reply = f"خطا از سمت Gemini: {result.get('error', {}).get('message', 'خطای ناشناخته')}"
+                    print(f"❌ خطای Gemini: {bot_reply}")
             
-            print(f"🤖 پاسخ: {bot_reply}")
-            
-            # ارسال پاسخ موفق
+            # ارسال پاسخ
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({"reply": bot_reply}).encode())
             
-            print("✅ درخواست با موفقیت پردازش شد")
+            print("✅ پاسخ ارسال شد")
             
         except Exception as e:
             error_msg = f"خطا: {str(e)}"
             print(f"❌ {error_msg}")
             
-            # پاسخ خطا به کاربر
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(json.dumps({"reply": "خطا در پردازش درخواست: " + str(e)}).encode())
+            self.wfile.write(json.dumps({"reply": "خطا در سرور: " + str(e)}).encode())
