@@ -16,46 +16,97 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def markdown_to_html(self, text):
-        #"""تبدیل و تعمیر Markdown ناقص به HTML"""
+        #"""تبدیل هوشمند - فقط کدهای واقعی رو تبدیل کن"""
         if not text:
             return text
         
-        # امن‌سازی HTML
-        text = html.escape(text)
-        
-        # 🔥 اول backtickهای ناقص رو تعمیر کنیم
-        text = self.fix_broken_backticks(text)
-        
-        # بولد و ایتالیک
-        text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
-        text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
-        
-        # backtick استاندارد: کد
-        text = re.sub(r'`([^`\n]+)`', r'<code class="inline-code">\1</code>', text)
-        
-        # کد بلوک:    text = re.sub(r'```(\w+)?\s*([^`]+)```', r'<pre><code data-language="\1">\2</code></pre>', text, flags=re.DOTALL)
-        
-        # خطوط جدید به <br>
-        text = text.replace('\n', '<br>')
-        
-        return text
+        try:
+            # امن‌سازی HTML
+            text = html.escape(text)
+            
+            # بولد و ایتالیک
+            text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+            text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+            
+            # 🔥 فقط کدهای واقعی رو تبدیل کن
+            
+            # ۱. کدهای بلوک کامل:        text = re.sub(
+                r'```(\w+)?\s*([^`]+)```', 
+                lambda m: f'<pre><code data-language="{m.group(1)}">{m.group(2)}</code></pre>' 
+                if self.is_real_code(m.group(2)) 
+                else f'<pre>{m.group(2)}</pre>',
+                text, 
+                flags=re.DOTALL
+            )
+            
+            # ۲. کدهای inline: print("hello")
+            text = re.sub(
+                r'`([^`\n]+)`', 
+                lambda m: f'<code class="inline-code">{m.group(1)}</code>' 
+                if self.is_real_code(m.group(1)) 
+                else f'<span class="quoted-text">{m.group(1)}</span>',
+                text
+            )
+            
+            # خطوط جدید به <br>
+            text = text.replace('\n', '<br>')
+            
+            return text
+            
+        except Exception as e:
+            print(f"⚠️ خطا در تبدیل Markdown: {e}")
+            return text
 
-    def fix_broken_backticks(self, text):
-        #"""تعمیر backtickهای ناقص Gemini"""
+    def is_real_code(self, text):
+        #"""تشخیص اینکه آیا متن واقعاً کد برنامه‌نویسی هست"""
+        text_clean = text.strip().lower()
         
-        # حالت ۱: ``python ->    text = re.sub(r'``(\w+)', r'```\1\n', text)
+        # الگوهای کد واقعی
+        code_patterns = [
+            # پایتون
+            r'^print\(.*\)$',
+            r'^def\s+\w+',
+            r'^import\s+\w+',
+            r'^from\s+\w+',
+            r'^class\s+\w+',
+            r'^if\s+.*:',
+            r'^for\s+.*:',
+            r'^while\s+.*:',
+            
+            # جاوااسکریپت
+            r'^console\.log\(.*\)$',
+            r'^function\s+\w+',
+            r'^const\s+\w+',
+            r'^let\s+\w+',
+            r'^var\s+\w+',
+            r'^document\.',
+            
+            # دستورات ترمینال
+            r'^python\s+\w+\.py$',
+            r'^node\s+\w+\.js$',
+            r'^npm\s+install',
+            r'^git\s+',
+            
+            # متغیرها و توابع
+            r'^\w+\([^)]*\)$',  # فراخوانی تابع
+            r'^\w+\.[\w]+\([^)]*\)$',  # فراخوانی متد
+            r'^\w+\s*=\s*[^=]+$',  # انتساب متغیر
+        ]
         
-        # حالت ۲: `\nprint("سلام دنیا")\n` -> ```python\nprint("سلام دنیا")\n    code_blocks = re.findall(r'`\s*\n([^`]+)\n\s*`', text)
-        for code in code_blocks:
-            # تشخیص زبان کد
-            language = 'python' if 'print(' in code else 'bash' if 'python ' in code else 'text'
-            fixed_block = f'```{language}\n{code}\n```'
-            text = text.replace(f'`\n{code}\n`', fixed_block)
+        for pattern in code_patterns:
+            if re.search(pattern, text_clean):
+                return True
         
-        # حالت ۳: backtick تکی که بسته نشده
-        text = re.sub(r'`([^`\n]+)(?:\n|$)', r'<code>\1</code>', text)
+        # اگر متن خیلی کوتاه هست، احتمالاً کد نیست
+        if len(text_clean) < 5:
+            return False
         
-        return text
+        # اگر شامل کلمات کلیدی برنامه‌نویسی هست
+        code_keywords = ['print', 'function', 'def ', 'import ', 'console', 'log', 'var ', 'let ', 'const ', 'class ']
+        if any(keyword in text_clean for keyword in code_keywords):
+            return True
+        
+        return False
     
     def do_POST(self):
         try:
