@@ -46,6 +46,46 @@ function addMessage(text, sender) {
     return messageDiv;
 }
 
+// اضافه کردن event listener برای دکمه‌های کپی
+document.addEventListener('DOMContentLoaded', function() {
+    // این تابع رو به صورت global تعریف کن
+    window.copyCode = async function(button) {
+        const codeContainer = button.parentElement;
+        const codeElement = codeContainer.querySelector('code, pre');
+        
+        if (codeElement) {
+            const textToCopy = codeElement.textContent || codeElement.innerText;
+            
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                
+                // نمایش تأیید
+                button.textContent = '✅';
+                button.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    button.textContent = '📋';
+                    button.style.background = '';
+                }, 2000);
+                
+            } catch (err) {
+                // روش fallback برای مرورگرهای قدیمی
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                button.textContent = '✅';
+                setTimeout(() => {
+                    button.textContent = '📋';
+                }, 2000);
+            }
+        }
+    };
+});
+
 
 document.getElementById('userInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
