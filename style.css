@@ -23,15 +23,15 @@ body {
 h1 {
     background: #4a5568;
     color: white;
-    padding: 20px;
+    padding: 10px;
     text-align: center;
-    font-size: 1.5em;
+    font-size: 2em;
 }
 
 p{
     background: #4a5568;
     color: white;
-    padding: 20px;
+    padding: 5px;
     text-align: center;
     font-size: 12px;
 }
