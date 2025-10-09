@@ -126,52 +126,73 @@ button:hover {
     text-decoration: underline;
 }
 
-/* کدهای inline */
-.inline-code {
-    background: #f1f5f9;
-    color: #dc2626;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: 'Courier New', monospace;
+/* کانتینر حرفه‌ای برای کدها */
+.code-container {
+    position: relative;
+    margin: 15px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: 1px solid #e2e8f0;
-    font-size: 0.9em;
-    display: inline;
-    margin: 0 1px;
+    background: #1e293b;
 }
 
-/* بلاک کدهای کامل */
+/* دکمه کپی */
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+/* کدهای بلوک */
 .message pre {
-    background: #1e293b;
-    color: #f8fafc;
-    padding: 0;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    margin: 10px 0;
-    overflow: hidden;
+    margin: 0;
+    background: #1e293b !important;
+    border-radius: 0 0 12px 12px;
 }
 
 .message pre code {
     display: block;
-    padding: 15px;
-    font-family: 'Cascadia Code', 'Courier New', monospace;
-    font-size: 0.95em;
+    padding: 50px 15px 15px 15px; /* فضای بیشتر برای دکمه */
+    font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+    font-size: 14px;
     line-height: 1.5;
     white-space: pre-wrap;
-    user-select: all;
+    color: #f8fafc;
+    background: #1e293b;
+    overflow-x: auto;
 }
 
-/* هدر برای بلاک کد */
+/* هدر برای کد بلوک */
 .message pre code::before {
-    content: attr(data-language);
+    content: attr(data-language) " • کد";
     display: block;
-    background: #334155;
-    color: #94a3b8;
-    padding: 8px 15px;
-    margin: -15px -15px 15px -15px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #334155, #475569);
+    color: #cbd5e1;
+    padding: 12px 15px;
     font-family: system-ui;
-    font-size: 0.8em;
+    font-size: 12px;
+    font-weight: 500;
     border-bottom: 1px solid #475569;
-    text-transform: uppercase;
 }
 
 /* اگر زبان مشخص نبود */
@@ -179,20 +200,38 @@ button:hover {
     content: "کد";
 }
 
+/* کدهای inline */
+.message .inline-code {
+    background: #f1f5f9;
+    color: #dc2626;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9em;
+    display: inline;
+    margin: 0 2px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.message .inline-code:hover {
+    background: #e2e8f0;
+}
+
 /* برای پیام‌های کاربر */
+.message.user-message .code-container {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+.message.user-message .copy-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
 .message.user-message .inline-code {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     color: #fef3c7;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* لیست‌های بولت */
-.message ul {
-    margin: 10px 0;
-    padding-right: 20px;
-}
-
-.message li {
-    margin: 5px 0;
-    line-height: 1.5;
+    border-color: rgba(255, 255, 255, 0.2);
 }
