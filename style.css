@@ -110,7 +110,6 @@ button:hover {
     color: #4a5568;
 }
 
-
 /* برای پیام‌های کاربر */
 .message.user-message strong {
     color: white;
@@ -120,11 +119,12 @@ button:hover {
     color: #e2e8f0;
 }
 
-
 .message a {
     color: #3182ce;
     text-decoration: underline;
 }
+
+/* 🔥 اصلاحات ضروری روی کدهای شما */
 
 /* کانتینر حرفه‌ای برای کدها */
 .code-container {
@@ -141,7 +141,7 @@ button:hover {
 .copy-btn {
     position: absolute;
     top: 10px;
-    left: 10px;
+    right: 10px; /* 🔥 تغییر از left به right */
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
@@ -178,8 +178,8 @@ button:hover {
     overflow-x: auto;
 }
 
-/* هدر برای کد بلوک */
-.message pre code::before {
+/* 🔥 هدر برای کد بلوک - FIXED */
+.message .code-container::before {
     content: attr(data-language) " • کد";
     display: block;
     position: absolute;
@@ -193,10 +193,11 @@ button:hover {
     font-size: 12px;
     font-weight: 500;
     border-bottom: 1px solid #475569;
+    z-index: 1;
 }
 
-/* اگر زبان مشخص نبود */
-.message pre code:not([data-language])::before {
+/* 🔥 اگر زبان مشخص نبود - FIXED */
+.message .code-container:not([data-language])::before {
     content: "کد";
 }
 
@@ -233,5 +234,23 @@ button:hover {
 .message.user-message .inline-code {
     background: rgba(255, 255, 255, 0.1);
     color: #fef3c7;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 🔥 اضافه کردن استایل برای quoted-text */
+.message .quoted-text {
+    background: #f7fafc;
+    color: #4a5568;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    font-style: italic;
+    display: inline;
+    margin: 0 2px;
+}
+
+.message.user-message .quoted-text {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
     border-color: rgba(255, 255, 255, 0.2);
 }
