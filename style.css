@@ -126,46 +126,45 @@ button:hover {
     text-decoration: underline;
 }
 
-/* استایل برای کدهای قابل کپی */
+/* استایل برای کدهای تشخیص خودکار */
 .message code {
-    background: #f1f5f9;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-family: 'Courier New', Monaco, 'Cascadia Code', monospace;
-    color: #dc2626;
-    border: 1px solid #e2e8f0;
-    font-size: 0.9em;
-    display: inline-block;
-    margin: 2px 0;
-    cursor: text;
-    user-select: all;
-    -webkit-user-select: all;
-    -moz-user-select: all;
-    -ms-user-select: all;
-}
-
-.message code:hover {
-    background: #e2e8f0;
-}
-
-/* برای پیام‌های کاربر */
-.message.user-message code {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fef3c7;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    user-select: all;
-}
-
-/* استایل برای بلاک کد */
-.message pre code {
-    display: block;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 8px;
     background: #1e293b;
     color: #f8fafc;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-family: 'Courier New', Monaco, 'Cascadia Code', monospace;
     border: 1px solid #334155;
+    font-size: 0.95em;
+    display: block;
+    margin: 8px 0;
     overflow-x: auto;
     white-space: pre-wrap;
     user-select: all;
+    line-height: 1.5;
+}
+
+.message code::before {
+    content: "🖥️ کد:";
+    display: block;
+    font-family: system-ui;
+    font-size: 0.8em;
+    color: #94a3b8;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 3px;
+}
+
+/* برای کدهای کوچک inline */
+.message code:not(:has(br)) {
+    display: inline;
+    padding: 3px 6px;
+    margin: 0 2px;
+    background: #f1f5f9;
+    color: #dc2626;
+    border: 1px solid #e2e8f0;
+}
+
+.message code:not(:has(br))::before {
+    content: "";
+    display: none;
 }
