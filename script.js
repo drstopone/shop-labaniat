@@ -88,7 +88,7 @@ function addMessage(text, sender) {
     const messageDiv = document.createElement('div');
     
     // 🔥 اصلاح: استفاده از template literal صحیح
-    messageDiv.className = message ${sender}-message;
+    messageDiv.className = 'message ${sender}-message';
     
     // اضافه کردن دکمه کپی به کدها
     if (typeof text === 'string' && (text.includes('<pre')  text.includes('code-container')  text.includes('inline-code'))) {
