@@ -25,8 +25,8 @@ class handler(BaseHTTPRequestHandler):
             # استفاده از Google Gemini
             api_key = os.environ.get('GEMINI_API_KEY', 'AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs')
             
-            # ارسال به Google Gemini
-            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={api_key}"
+            # ارسال به Google Gemini - با مدل درست
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
             
             data = {
                 "contents": [{
@@ -37,9 +37,15 @@ class handler(BaseHTTPRequestHandler):
             response = requests.post(url, json=data)
             result = response.json()
             
+            print(f"🔧 وضعیت پاسخ: {response.status_code}")
+            print(f"🔧 پاسخ کامل: {result}")
+            
             if response.status_code == 200:
-                bot_reply = result['candidates'][0]['content']['parts'][0]['text']
-                print("✅ پاسخ از Gemini دریافت شد")
+                if 'candidates' in result and len(result['candidates']) > 0:
+                    bot_reply = result['candidates'][0]['content']['parts'][0]['text']
+                    print("✅ پاسخ از Gemini دریافت شد")
+                else:
+                    bot_reply = "⚠️ ساختار پاسخ غیرمنتظره از Gemini"
             else:
                 error_msg = result.get('error', {}).get('message', 'خطای ناشناخته')
                 bot_reply = f"⚠️ خطا از سمت Gemini: {error_msg}"
