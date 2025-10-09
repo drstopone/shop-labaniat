@@ -41,7 +41,7 @@ function addMessage(text, sender) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
     // ذخیره در تاریخچه
-    setTimeout(saveChatHistory, 100);
+    //setTimeout(saveChatHistory, 100);
     
     return messageDiv;
 }
