@@ -1,6 +1,5 @@
 from http.server import BaseHTTPRequestHandler
 import json
-import os
 import requests
 
 class handler(BaseHTTPRequestHandler):
@@ -22,34 +21,46 @@ class handler(BaseHTTPRequestHandler):
             user_message = request_data.get('message', '')
             print(f"📨 پیام کاربر: {user_message}")
             
-            # استفاده از Google Gemini
-            api_key = os.environ.get('GEMINI_API_KEY', 'AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs')
+            # استفاده از Google Gemini 2.0 Flash - با مستندات درست
+            api_key = "AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs"
+            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
             
-            # ارسال به Google Gemini - با مدل درست
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-            
-            data = {
-                "contents": [{
-                    "parts": [{"text": user_message}]
-                }]
+            headers = {
+                'Content-Type': 'application/json',
+                'X-goog-api-key': api_key
             }
             
-            response = requests.post(url, json=data)
-            result = response.json()
+            data = {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": user_message
+                            }
+                        ]
+                    }
+                ]
+            }
             
+            print("🔧 در حال ارسال درخواست به Gemini...")
+            response = requests.post(url, headers=headers, json=data)
             print(f"🔧 وضعیت پاسخ: {response.status_code}")
-            print(f"🔧 پاسخ کامل: {result}")
             
             if response.status_code == 200:
+                result = response.json()
+                print(f"🔧 پاسخ کامل: {result}")
+                
+                # استخراج پاسخ از ساختار JSON
                 if 'candidates' in result and len(result['candidates']) > 0:
                     bot_reply = result['candidates'][0]['content']['parts'][0]['text']
                     print("✅ پاسخ از Gemini دریافت شد")
                 else:
                     bot_reply = "⚠️ ساختار پاسخ غیرمنتظره از Gemini"
+                    
             else:
-                error_msg = result.get('error', {}).get('message', 'خطای ناشناخته')
-                bot_reply = f"⚠️ خطا از سمت Gemini: {error_msg}"
-                print(f"❌ خطای Gemini: {error_msg}")
+                error_msg = response.text
+                print(f"❌ خطا: {error_msg}")
+                bot_reply = f"⚠️ خطا از سمت Gemini (کد: {response.status_code})"
             
             # ارسال پاسخ
             self.send_response(200)
