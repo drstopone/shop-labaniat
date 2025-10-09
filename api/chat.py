@@ -33,7 +33,7 @@ class handler(BaseHTTPRequestHandler):
             # ۱. کدهای بلوک کامل:        
             text = re.sub(
                 r'```(\w+)?\s*([^`]+)```', 
-                lambda m: f'<pre><code data-language="{m.group(1)}">{m.group(2)}</code></pre>' 
+                lambda m: f'<div class="code-container"><button class="copy-btn" onclick="copyCode(this)">📋</button><pre><code data-language="{m.group(1)}">{m.group(2)}</code></pre></div>' 
                 if self.is_real_code(m.group(2)) 
                 else f'<pre>{m.group(2)}</pre>',
                 text, 
@@ -53,61 +53,10 @@ class handler(BaseHTTPRequestHandler):
             text = text.replace('\n', '<br>')
             
             return text
-            
-        except Exception as e:
-            print(f"⚠️ خطا در تبدیل Markdown: {e}")
-            return text
-
-    def is_real_code(self, text):
-        #"""تشخیص اینکه آیا متن واقعاً کد برنامه‌نویسی هست"""
-        text_clean = text.strip().lower()
         
-        # الگوهای کد واقعی
-        code_patterns = [
-            # پایتون
-            r'^print\(.*\)$',
-            r'^def\s+\w+',
-            r'^import\s+\w+',
-            r'^from\s+\w+',
-            r'^class\s+\w+',
-            r'^if\s+.*:',
-            r'^for\s+.*:',
-            r'^while\s+.*:',
-            
-            # جاوااسکریپت
-            r'^console\.log\(.*\)$',
-            r'^function\s+\w+',
-            r'^const\s+\w+',
-            r'^let\s+\w+',
-            r'^var\s+\w+',
-            r'^document\.',
-            
-            # دستورات ترمینال
-            r'^python\s+\w+\.py$',
-            r'^node\s+\w+\.js$',
-            r'^npm\s+install',
-            r'^git\s+',
-            
-            # متغیرها و توابع
-            r'^\w+\([^)]*\)$',  # فراخوانی تابع
-            r'^\w+\.[\w]+\([^)]*\)$',  # فراخوانی متد
-            r'^\w+\s*=\s*[^=]+$',  # انتساب متغیر
-        ]
-        
-        for pattern in code_patterns:
-            if re.search(pattern, text_clean):
-                return True
-        
-        # اگر متن خیلی کوتاه هست، احتمالاً کد نیست
-        if len(text_clean) < 5:
-            return False
-        
-        # اگر شامل کلمات کلیدی برنامه‌نویسی هست
-        code_keywords = ['print', 'function', 'def ', 'import ', 'console', 'log', 'var ', 'let ', 'const ', 'class ']
-        if any(keyword in text_clean for keyword in code_keywords):
-            return True
-        
-        return False
+    except Exception as e:
+        print(f"⚠️ خطا در تبدیل Markdown: {e}")
+        return text
     
     def do_POST(self):
         try:
