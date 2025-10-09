@@ -1,7 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
-from openai import OpenAI
 
 class handler(BaseHTTPRequestHandler):
     
@@ -27,20 +26,35 @@ class handler(BaseHTTPRequestHandler):
             if not api_key:
                 raise ValueError("API Key پیدا نشد")
             
-            # ایجاد کلید OpenAI با نسخه جدید
-            client = OpenAI(api_key=api_key)
+            # ایمپورت openai - سازگار با نسخه‌های مختلف
+            try:
+                # روش جدید (نسخه >=1.0.0)
+                from openai import OpenAI
+                client = OpenAI(api_key=api_key)
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": user_message}
+                    ],
+                    max_tokens=150
+                )
+                bot_reply = response.choices[0].message.content
+                
+            except ImportError:
+                # روش قدیمی (نسخه <1.0.0)
+                import openai
+                openai.api_key = api_key
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": user_message}
+                    ],
+                    max_tokens=150
+                )
+                bot_reply = response.choices[0].message.content
             
-            # ارسال به OpenAI
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": user_message}
-                ],
-                max_tokens=150
-            )
-            
-            bot_reply = response.choices[0].message.content
             print(f"🤖 پاسخ: {bot_reply}")
             
             # ارسال پاسخ موفق
