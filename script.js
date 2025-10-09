@@ -190,7 +190,7 @@ function loadChatHistory() {
         
         messages.forEach(msg => {
             const messageDiv = document.createElement('div');
-            messageDiv.className = message ${msg.sender}-message;
+            messageDiv.className = 'message ${msg.sender}-message';
             messageDiv.innerHTML = msg.text;
             chatContainer.appendChild(messageDiv);
         });
