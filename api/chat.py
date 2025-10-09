@@ -3,37 +3,39 @@ import json
 import requests
 import re
 import html
+import os
 
 class handler(BaseHTTPRequestHandler):
     
     def do_OPTIONS(self):
         self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
-
-def markdown_to_html(self, text):
-    """تبدیل Markdown ساده به HTML"""
-    if not text:
+    
+    def markdown_to_html(self, text):
+        """تبدیل Markdown ساده به HTML"""
+        if not text:
+            return text
+        
+        # امن‌سازی HTML
+        text = html.escape(text)
+        
+        # متن به <strong>متن</strong>
+        text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+        
+        # *متن* به <em>متن</em>
+        text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+        
+        # کد به <code>کد</code>
+        text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)
+        
+        # خطوط جدید به <br>
+        text = text.replace('\n', '<br>')
+        
         return text
-    
-    # امن‌سازی HTML - مهم!
-    text = html.escape(text)
-    
-    # متن به <strong>متن</strong>
-    text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
-    
-    # *متن* به <em>متن</em>
-    text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
-    
-    # کد به <code>کد</code>
-    text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)
-    
-    # خطوط جدید به <br>
-    text = text.replace('\n', '<br>')
-    
-    return text
     
     def do_POST(self):
         try:
@@ -45,7 +47,7 @@ def markdown_to_html(self, text):
             user_message = request_data.get('message', '')
             print(f"📨 پیام کاربر: {user_message}")
             
-            # استفاده از Google Gemini 2.0 Flash - با مستندات درست
+            # استفاده از Google Gemini
             api_key = "AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs"
             url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
             
@@ -77,21 +79,24 @@ def markdown_to_html(self, text):
                 # استخراج پاسخ از ساختار JSON
                 if 'candidates' in result and len(result['candidates']) > 0:
                     bot_reply = result['candidates'][0]['content']['parts'][0]['text']
-                    print("✅ پاسخ از Gemini دریافت شد")
+                    
+                    # تبدیل Markdown به HTML
+                    bot_reply_html = self.markdown_to_html(bot_reply)
+                    print("✅ پاسخ از Gemini دریافت و تبدیل شد")
                 else:
-                    bot_reply = "⚠️ ساختار پاسخ غیرمنتظره از Gemini"
+                    bot_reply_html = "⚠️ ساختار پاسخ غیرمنتظره از Gemini"
                     
             else:
                 error_msg = response.text
                 print(f"❌ خطا: {error_msg}")
-                bot_reply = f"⚠️ خطا از سمت Gemini (کد: {response.status_code})"
+                bot_reply_html = f"⚠️ خطا از سمت Gemini (کد: {response.status_code})"
             
             # ارسال پاسخ
             self.send_response(200)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(json.dumps({"reply": bot_reply}).encode())
+            self.wfile.write(json.dumps({"reply": bot_reply_html}).encode())
             
             print("✅ پاسخ ارسال شد")
             
@@ -100,7 +105,7 @@ def markdown_to_html(self, text):
             print(f"❌ {error_msg}")
             
             self.send_response(500)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({"reply": "خطا در سرور: " + str(e)}).encode())
