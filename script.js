@@ -32,7 +32,7 @@ async function sendMessage() {
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
-    messageDiv.className = message ${sender}-message;
+    messageDiv.className = 'message ${sender}-message';
     
     // همیشه از innerHTML استفاده کن - مهم!
     messageDiv.innerHTML = text;
