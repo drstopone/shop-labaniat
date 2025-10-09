@@ -16,7 +16,7 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def markdown_to_html(self, text):
-        """تبدیل هوشمند متن به HTML با تشخیص خودکار کد"""
+        #"""تبدیل هوشمند متن به HTML با تشخیص خودکار کد"""
         if not text:
             return text
         
@@ -49,7 +49,7 @@ class handler(BaseHTTPRequestHandler):
         return text
 
     def looks_like_code(self, line):
-        """تشخیص اینکه آیا خط شبیه کد برنامه‌نویسی هست"""
+        #"""تشخیص اینکه آیا خط شبیه کد برنامه‌نویسی هست"""
         line_clean = line.strip()
         
         # الگوهای کد
