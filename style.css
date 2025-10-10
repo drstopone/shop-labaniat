@@ -47,12 +47,14 @@ body {
     font-size: 1.8em;
     margin-bottom: 5px;
     font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .header p {
     font-size: 0.9em;
     opacity: 0.9;
     margin-top: 5px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 /* ============================================= */
@@ -117,37 +119,38 @@ body {
 
 /* پیام کاربر (سمت راست - آبی) */
 .user-message {
-    background: #0088cc;
+    background: linear-gradient(135deg, #0088cc 0%, #0077b3 100%);
     color: white;
     align-self: flex-end;
     border-bottom-right-radius: 5px;
     margin-left: auto;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 136, 204, 0.3);
+    border: 1px solid #0077b3;
 }
 
 /* پیام ربات (سمت چپ - سفید) */
 .bot-message {
-    background: white;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     color: #333;
     align-self: flex-start;
     border-bottom-left-radius: 5px;
     margin-right: auto;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border: 1px solid #e1e5e9;
 }
 
 /* ============================================= */
-/* ⌨️ INPUT SECTION */
+/* ⌨️ INPUT SECTION - MODERN STYLE */
 /* ============================================= */
 
 .input-section {
-    padding: 15px 20px;
-    background: white;
-    border-top: 1px solid #e1e5e9;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-top: 1px solid #dee2e6;
     display: flex;
-    gap: 12px;
+    gap: 15px;
     align-items: center;
-    background: #f0f0f0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .input-wrapper {
@@ -157,67 +160,80 @@ body {
 
 .user-input {
     width: 100%;
-    padding: 12px 18px;
-    border: none;
+    padding: 15px 20px;
+    border: 2px solid #e9ecef;
     border-radius: 25px;
     outline: none;
-    font-size: 15px;
+    font-size: 16px;
     transition: all 0.3s ease;
     background: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
 
 .user-input:focus {
-    box-shadow: 0 0 0 2px #0088cc;
+    border-color: #0088cc;
+    box-shadow: 0 0 0 3px rgba(0, 136, 204, 0.1), 0 2px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
 }
 
 .user-input:disabled {
-    background: #f5f5f5;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     cursor: not-allowed;
     opacity: 0.7;
 }
 
 .send-button {
-    padding: 12px 25px;
-    background: #0088cc;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #0088cc 0%, #0077b3 100%);
     color: white;
     border: none;
     border-radius: 25px;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     transition: all 0.3s ease;
-    min-width: 80px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    min-width: 100px;
+    box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .send-button:hover:not(:disabled) {
-    background: #0077b3;
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #0077b3 0%, #0066a3 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 136, 204, 0.4);
+}
+
+.send-button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(0, 136, 204, 0.3);
 }
 
 .send-button:disabled {
-    background: #a0aec0;
+    background: linear-gradient(135deg, #a0aec0 0%, #90a0b4 100%);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
 }
 
 .clear-button {
-    padding: 8px 15px;
-    background: #e53e3e;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
     color: white;
     border: none;
-    border-radius: 15px;
+    border-radius: 20px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
+    font-weight: 500;
     transition: all 0.3s ease;
     margin-left: 10px;
+    box-shadow: 0 2px 10px rgba(229, 62, 62, 0.3);
 }
 
 .clear-button:hover {
-    background: #c53030;
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #c53030 0%, #a52a2a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);
 }
 
 /* ============================================= */
@@ -264,7 +280,7 @@ body {
     margin: 10px 0;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     border: 1px solid #374151;
     background: #1f2937;
 }
@@ -274,22 +290,24 @@ body {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .copy-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.05);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* کد بلوک */
@@ -322,12 +340,13 @@ body {
     right: 0;
     background: linear-gradient(135deg, #374151, #4b5563);
     color: #d1d5db;
-    padding: 10px 15px;
+    padding: 12px 15px;
     font-family: 'Segoe UI', system-ui, sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     border-bottom: 1px solid #4b5563;
     z-index: 2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* اگر زبان مشخص نبود */
@@ -340,32 +359,35 @@ body {
 /* ============================================= */
 
 .inline-code {
-    background: #edf2f7;
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
     color: #c53030;
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
     font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
     border: 1px solid #e2e8f0;
     font-size: 0.85em;
     display: inline;
-    margin: 0 1px;
+    margin: 0 2px;
     transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .inline-code:hover {
-    background: #e2e8f0;
+    background: linear-gradient(135deg, #e2e8f0 0%, #d6e2f0 100%);
+    transform: translateY(-1px);
 }
 
 /* نقل قول متن (غیر کد) */
 .quoted-text {
-    background: #f7fafc;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
     color: #4a5568;
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
     border: 1px solid #e2e8f0;
     font-style: italic;
     display: inline;
-    margin: 0 1px;
+    margin: 0 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* ============================================= */
@@ -382,18 +404,18 @@ body {
 }
 
 .user-message .copy-btn {
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%);
     border-color: rgba(255, 255, 255, 0.4);
 }
 
 .user-message .inline-code {
-    background: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
     color: #fef3c7;
     border-color: rgba(255, 255, 255, 0.3);
 }
 
 .user-message .quoted-text {
-    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
     color: #e2e8f0;
     border-color: rgba(255, 255, 255, 0.2);
 }
@@ -427,26 +449,31 @@ body {
     }
     
     .input-section {
-        padding: 12px 15px;
+        padding: 15px;
+        gap: 10px;
     }
     
     .user-input {
-        padding: 10px 16px;
+        padding: 12px 18px;
         font-size: 14px;
     }
     
     .send-button {
-        padding: 10px 20px;
+        padding: 12px 20px;
         font-size: 14px;
+        min-width: 80px;
+    }
+    
+    .clear-button {
+        padding: 8px 15px;
+        font-size: 12px;
     }
     
     .code-container code {
         padding: 40px 12px 12px 12px;
         font-size: 12px;
     }
-}
-
-@media (max-width: 480px) {
+}@media (max-width: 480px) {
     .header {
         padding: 15px;
     }
@@ -462,6 +489,26 @@ body {
     .message {
         max-width: 90%;
         font-size: 13px;
+    }
+    
+    .input-section {
+        padding: 12px;
+        flex-direction: column;
+    }
+    
+    .input-wrapper {
+        width: 100%;
+    }
+    
+    .send-button {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    .clear-button {
+        align-self: flex-end;
+        margin-left: 0;
+        margin-top: 10px;
     }
     
     .code-container code {
