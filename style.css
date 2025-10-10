@@ -59,8 +59,8 @@ p{
 }
 
 .bot-message {
-    background: #f1f1f1;
-    color: #333;
+    background: #000000;
+    color: #ffffff;
     margin-right: auto;
     border-bottom-left-radius: 5px;
 }
