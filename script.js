@@ -5,23 +5,50 @@
 let lastMessageTime = 0;
 const MESSAGE_DELAY = 2000; // 2 ثانیه تأخیر بین پیام‌ها
 
-// 🔥 استفاده از sessionStorage بجای متغیر موقت
+// 🔥 ترکیب هر دو روش: sessionStorage + متغیر موقت
+let temporaryHistory = [];
+
 function getTemporaryHistory() {
-    const history = sessionStorage.getItem('temporaryHistory');
-    return history ? JSON.parse(history) : [];
+    // اول از sessionStorage چک کن، اگر نبود از متغیر موقت
+    const sessionHistory = sessionStorage.getItem('temporaryHistory');
+    if (sessionHistory) {
+        temporaryHistory = JSON.parse(sessionHistory);
+    }
+    return temporaryHistory;
 }
 
 function addToTemporaryHistory(role, text) {
-    const history = getTemporaryHistory();
-    history.push({ role, text, time: new Date().toISOString() });
-    sessionStorage.setItem('temporaryHistory', JSON.stringify(history));
+    temporaryHistory.push({ role, text, time: new Date().toISOString() });
     
-    console.log(`📚 تاریخچه موقت: ${history.length} پیام`);
+    // همزمان در sessionStorage هم ذخیره کن
+    sessionStorage.setItem('temporaryHistory', JSON.stringify(temporaryHistory));
+    
+    console.log(`📚 تاریخچه موقت: ${temporaryHistory.length} پیام`);
 }
 
 function clearTemporaryHistory() {
+    temporaryHistory = [];
     sessionStorage.removeItem('temporaryHistory');
-    console.log('🗑️ تاریخچه موقت پاک شد');
+    localStorage.removeItem('chatHistory'); // 🔥 پاک کردن تاریخچه نمایش هم
+    console.log('🗑️ تاریخچه موقت و نمایش پاک شد');
+}
+
+// 🔥 پاک کردن تاریخچه هنگام لود صفحه (رفرش)
+function clearOnRefresh() {
+    // پاک کردن تاریخچه موقت
+    temporaryHistory = [];
+    sessionStorage.removeItem('temporaryHistory');
+    
+    // پاک کردن تاریخچه نمایش از localStorage
+    localStorage.removeItem('chatHistory');
+    
+    // پاک کردن پیام‌ها از صفحه
+    const chatContainer = document.getElementById('chatContainer');
+    if (chatContainer) {
+        chatContainer.innerHTML = '';
+    }
+    
+    console.log('🔄 تاریخچه با رفرش صفحه پاک شد');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -31,11 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') sendMessage();
     });
     
-    // 🔥 پاک کردن تاریخچه موقت هنگام لود صفحه (برای تست)
-     clearTemporaryHistory(); // این خط رو موقع تست فعال کن
-    
-    // بارگذاری تاریخچه از localStorage
-    loadChatHistory();
+    // 🔥 پاک کردن تاریخچه هنگام لود صفحه (رفرش)
+    clearOnRefresh();
     
     console.log('✅ چت‌بات آماده است!');
     console.log(`📊 تاریخچه موقت: ${getTemporaryHistory().length} پیام`);
@@ -104,8 +128,7 @@ async function sendMessage() {
         addMessage('⚠️ خطا در ارتباط با سرور', 'bot');
         console.error('Error:', error);
     } finally {
-        // فعال کردن مجدد
-        userInput.disabled = false;
+        // فعال کردن مجددuserInput.disabled = false;
         document.getElementById('sendButton').disabled = false;
         userInput.focus();
     }
@@ -119,19 +142,19 @@ function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
     
-    messageDiv.className =  'message ${sender}-message';
+    messageDiv.className = 'message ${sender}-message';
     
     // اضافه کردن دکمه کپی به کدها
     if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
         messageDiv.innerHTML = addCopyButtonToCode(text);
-        } else {
+    } else {
         messageDiv.innerHTML = text;
     }
     
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
-    // ذخیره در تاریخچه
+    // 🔥 ذخیره در تاریخچه نمایش (فقط برای نمایش، نه برای حافظه ربات)
     saveChatHistory();
     
     return messageDiv;
@@ -226,8 +249,7 @@ function loadChatHistory() {
         const chatContainer = document.getElementById('chatContainer');
         chatContainer.innerHTML = '';
         
-        messages.forEach(msg => {
-            const messageDiv = document.createElement('div');
+        messages.forEach(msg => {const messageDiv = document.createElement('div');
             messageDiv.className = 'message ${msg.sender}-message';
             messageDiv.innerHTML = msg.text;
             chatContainer.appendChild(messageDiv);
@@ -244,15 +266,15 @@ function loadChatHistory() {
 
 function clearChatHistory() {
     if (confirm('آیا از پاک کردن تاریخچه چت مطمئن هستید؟')) {
-        localStorage.removeItem('chatHistory');
-        clearTemporaryHistory(); // 🔥 پاک کردن تاریخچه موقت هم
+        clearTemporaryHistory(); // 🔥 پاک کردن کامل تاریخچه
         document.getElementById('chatContainer').innerHTML = '';
         console.log('🗑️ تاریخچه چت پاک شد');
     }
 }
 
-// 🔥 پاک کردن تاریخچه موقت هنگام رفرش صفحه
+// 🔥 پاک کردن تاریخچه موقت هنگام بستن تب/مرورگر
 window.addEventListener('beforeunload', function() {
-    console.log('🔄 پاک کردن تاریخچه موقت به دلیل رفرش صفحه');
-    clearTemporaryHistory();
+    console.log('🔄 پاک کردن تاریخچه موقت به دلیل بستن تب');
+    // اینجا فقط sessionStorage پاک میشه، متغیر موقت خودبخود پاک میشه
+    sessionStorage.removeItem('temporaryHistory');
 });
