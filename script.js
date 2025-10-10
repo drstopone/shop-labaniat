@@ -128,9 +128,14 @@ async function sendMessage() {
         addMessage('⚠️ خطا در ارتباط با سرور', 'bot');
         console.error('Error:', error);
     } finally {
-        // فعال کردن مجددuserInput.disabled = false;
+        // فعال کردن مجدد
+        userInput.disabled = false;
         document.getElementById('sendButton').disabled = false;
+        
+        // 🔥 برگرداندن focus به input (مهم!)
         userInput.focus();
+        
+        console.log('✅ آماده دریافت پیام جدید');
     }
 }
 
