@@ -4,7 +4,25 @@
 
 let lastMessageTime = 0;
 const MESSAGE_DELAY = 2000; // 2 ثانیه تأخیر بین پیام‌ها
-let temporaryHistory = []; // 🔥 تاریخچه موقت برای تمام پیام‌ها
+
+// 🔥 استفاده از sessionStorage بجای متغیر موقت
+function getTemporaryHistory() {
+    const history = sessionStorage.getItem('temporaryHistory');
+    return history ? JSON.parse(history) : [];
+}
+
+function addToTemporaryHistory(role, text) {
+    const history = getTemporaryHistory();
+    history.push({ role, text, time: new Date().toISOString() });
+    sessionStorage.setItem('temporaryHistory', JSON.stringify(history));
+    
+    console.log(`📚 تاریخچه موقت: ${history.length} پیام`);
+}
+
+function clearTemporaryHistory() {
+    sessionStorage.removeItem('temporaryHistory');
+    console.log('🗑️ تاریخچه موقت پاک شد');
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     // رویدادهای چت
@@ -13,22 +31,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') sendMessage();
     });
     
+    // 🔥 پاک کردن تاریخچه موقت هنگام لود صفحه (برای تست)
+    // clearTemporaryHistory(); // این خط رو موقع تست فعال کن
+    
     // بارگذاری تاریخچه از localStorage
     loadChatHistory();
     
     console.log('✅ چت‌بات آماده است!');
+    console.log(`📊 تاریخچه موقت: ${getTemporaryHistory().length} پیام`);
 });
-
-// 🔥 مدیریت تاریخچه موقت - تمام پیام‌ها
-function getTemporaryHistory() {
-    return temporaryHistory;
-}
-
-function addToTemporaryHistory(role, text) {
-    temporaryHistory.push({ role, text, time: new Date().toISOString() });
-    
-    console.log(`📚 تاریخچه موقت: ${temporaryHistory.length} پیام`);
-}
 
 async function sendMessage() {
     const now = Date.now();
@@ -62,7 +73,7 @@ async function sendMessage() {
         // نمایش حالت "در حال تایپ"
         const typingIndicator = addMessage('... در حال تایپ', 'bot');
         
-        // 🔥 ارسال تمام تاریخچه به سرور
+        // 🔥 ارسال تاریخچه به سرور
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
@@ -70,7 +81,7 @@ async function sendMessage() {
             },
             body: JSON.stringify({ 
                 message: message,
-                history: getTemporaryHistory() // 🔥 ارسال تمام تاریخچه
+                history: getTemporaryHistory()
             })
         });
         
@@ -108,12 +119,12 @@ function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
     
-    messageDiv.className = 'message ${sender}-message';
+    messageDiv.className = message ${sender}-message;
     
     // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
+    if (typeof text === 'string' && (text.includes('<pre')  text.includes('code-container')  text.includes('inline-code'))) {
         messageDiv.innerHTML = addCopyButtonToCode(text);
-    } else {
+        } else {
         messageDiv.innerHTML = text;
     }
     
@@ -130,7 +141,8 @@ function addMessage(text, sender) {
 // 📋 مدیریت کپی کردن کد
 // =============================================
 
-function addCopyButtonToCode(htmlContent) {let processedContent = htmlContent;
+function addCopyButtonToCode(htmlContent) {
+    let processedContent = htmlContent;
     
     // اگر قبلاً دکمه کپی ندارد، اضافه کن
     if (!processedContent.includes('copy-btn')) {
@@ -214,22 +226,15 @@ function loadChatHistory() {
         const chatContainer = document.getElementById('chatContainer');
         chatContainer.innerHTML = '';
         
-        // 🔥 بازسازی تاریخچه موقت از localStorage
-        temporaryHistory = [];
-        
         messages.forEach(msg => {
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ${msg.sender}-message';
+            messageDiv.className = message ${msg.sender}-message;
             messageDiv.innerHTML = msg.text;
             chatContainer.appendChild(messageDiv);
-            
-            // 🔥 اضافه کردن به تاریخچه موقت
-            const role = msg.sender === 'user' ? 'user' : 'assistant';
-            addToTemporaryHistory(role, msg.text);
         });
         
         chatContainer.scrollTop = chatContainer.scrollHeight;
-        console.log(`📂 چت بازیابی شد (${temporaryHistory.length} پیام)`);
+        console.log('📂 چت بازیابی شد');
     }
 }
 
@@ -240,8 +245,7 @@ function loadChatHistory() {
 function clearChatHistory() {
     if (confirm('آیا از پاک کردن تاریخچه چت مطمئن هستید؟')) {
         localStorage.removeItem('chatHistory');
-        // 🔥 پاک کردن تاریخچه موقت هم
-        temporaryHistory = [];
+        clearTemporaryHistory(); // 🔥 پاک کردن تاریخچه موقت هم
         document.getElementById('chatContainer').innerHTML = '';
         console.log('🗑️ تاریخچه چت پاک شد');
     }
@@ -250,5 +254,5 @@ function clearChatHistory() {
 // 🔥 پاک کردن تاریخچه موقت هنگام رفرش صفحه
 window.addEventListener('beforeunload', function() {
     console.log('🔄 پاک کردن تاریخچه موقت به دلیل رفرش صفحه');
-    temporaryHistory = [];
+    clearTemporaryHistory();
 });
