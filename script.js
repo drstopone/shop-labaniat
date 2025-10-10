@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // 🔥 پاک کردن تاریخچه موقت هنگام لود صفحه (برای تست)
-    // clearTemporaryHistory(); // این خط رو موقع تست فعال کن
+     clearTemporaryHistory(); // این خط رو موقع تست فعال کن
     
     // بارگذاری تاریخچه از localStorage
     loadChatHistory();
