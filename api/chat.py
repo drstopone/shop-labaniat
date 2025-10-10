@@ -117,7 +117,8 @@ class handler(BaseHTTPRequestHandler):
         try:
             # خواندن پیام کاربر و تاریخچه
             content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)request_data = json.loads(post_data)
+            post_data = self.rfile.read(content_length)
+            request_data = json.loads(post_data)
             
             user_message = request_data.get('message', '')
             client_history = request_data.get('history', [])  # 🔥 دریافت تاریخچه از کلاینت
