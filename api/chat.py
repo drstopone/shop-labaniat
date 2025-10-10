@@ -3,7 +3,6 @@ import json
 import requests
 import re
 import html
-import os
 
 class handler(BaseHTTPRequestHandler):
     
@@ -24,7 +23,6 @@ class handler(BaseHTTPRequestHandler):
         
         # نشانگرهای کد برنامه‌نویسی
         code_indicators = [
-            # کلمات کلیدی برنامه‌نویسی
             'function', 'def ', 'class ', 'import ', 'export ', 'const ', 'let ', 'var ',
             'if ', 'for ', 'while ', 'return ', 'print', 'console.log',
             '#include', 'using ', 'namespace ', 'public ', 'private ', 'protected ',
@@ -38,11 +36,11 @@ class handler(BaseHTTPRequestHandler):
         
         # ساختارهای کد
         code_patterns = [
-            r'^\s*\w+\s*\(.*\)\s*\{',  # توابع
-            r'^\s*\w+\s+[\w_]+\s*=',   # متغیرها
-            r'^\s*#',                   # کامنت‌های پایتون
-            r'^\s*//',                  # کامنت‌های JavaScript
-            r'^\s*/\*',                 # کامنت‌های چندخطی
+            r'^\s*\w+\s*\(.*\)\s*\{',
+            r'^\s*\w+\s+[\w_]+\s*=',
+            r'^\s*#',
+            r'^\s*//',
+            r'^\s*/\*',
         ]
         
         # بررسی نشانگرها
@@ -53,7 +51,7 @@ class handler(BaseHTTPRequestHandler):
         
         # بررسی کاراکترهای خاص
         code_char_count = sum(1 for char in code_chars if char in text)
-        if code_char_count >= 2:  # اگر حداقل ۲ کاراکتر کد داشته باشد
+        if code_char_count >= 2:
             return True
         
         # بررسی الگوها
@@ -61,7 +59,6 @@ class handler(BaseHTTPRequestHandler):
             if re.search(pattern, text):
                 return True
         
-        # اگر متن خیلی کوتاه است (کمتر از ۱۰ کاراکتر) احتمالاً کد نیست
         if len(text) < 10:
             return False
         
@@ -80,7 +77,7 @@ class handler(BaseHTTPRequestHandler):
             text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
             text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
             
-            # 🔥 تبدیل کدهای بلوک
+            # تبدیل کدهای بلوک
             def process_code_block(match):
                 language = match.group(1) or 'text'
                 code_content = match.group(2).strip()
@@ -93,7 +90,7 @@ class handler(BaseHTTPRequestHandler):
                 flags=re.DOTALL
             )
             
-            # 🔥 تبدیل کدهای inline
+            # تبدیل کدهای inline
             def process_inline_code(match):
                 code_content = match.group(1)
                 if self.is_real_code(code_content):
@@ -114,17 +111,25 @@ class handler(BaseHTTPRequestHandler):
         
         except Exception as e:
             print(f"⚠️ خطا در تبدیل Markdown: {e}")
-        return text
+            return text
     
     def do_POST(self):
         try:
-            # خواندن پیام کاربر
+            # خواندن پیام کاربر و تاریخچه
             content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            request_data = json.loads(post_data)
+            post_data = self.rfile.read(content_length)request_data = json.loads(post_data)
             
             user_message = request_data.get('message', '')
+            client_history = request_data.get('history', [])  # 🔥 دریافت تاریخچه از کلاینت
+            
             print(f"📨 پیام کاربر: {user_message}")
+            print(f"📚 تاریخچه از کلاینت: {len(client_history)} پیام")
+            
+            # 🔥 نمایش تاریخچه برای دیباگ
+            for i, msg in enumerate(client_history):
+                role = "کاربر" if msg.get("role") == "user" else "ربات"
+                text_preview = msg.get("text", "")[:50] + "..." if len(msg.get("text", "")) > 50 else msg.get("text", "")
+                print(f"   {i+1}. {role}: {text_preview}")
             
             # استفاده از Google Gemini
             api_key = "AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs"
@@ -135,19 +140,32 @@ class handler(BaseHTTPRequestHandler):
                 'X-goog-api-key': api_key
             }
             
+            # 🔥 ساختاردهی به تاریخچه برای Gemini
+            contents = []
+            
+            if client_history:
+                # اگر تاریخچه داریم، تمامش رو به فرمت Gemini تبدیل می‌کنیم
+                for msg in client_history:
+                    role = "user" if msg.get("role") == "user" else "model"
+                    text = msg.get("text", "")
+                    if text:  # فقط پیام‌های غیرخالی رو اضافه کن
+                        contents.append({
+                            "role": role,
+                            "parts": [{"text": text}]
+                        })
+            
+            # اضافه کردن پیام جدید کاربر
+            contents.append({
+                "role": "user",
+                "parts": [{"text": user_message}]
+            })
+            
             data = {
-                "contents": [
-                    {
-                        "parts": [
-                            {
-                                "text": user_message
-                            }
-                        ]
-                    }
-                ]
+                "contents": contents
             }
             
-            print("🔧 در حال ارسال درخواست به Gemini...")
+            print(f"🔧 ارسال {len(contents)} پیام به Gemini...")
+            
             response = requests.post(url, headers=headers, json=data)
             print(f"🔧 وضعیت پاسخ: {response.status_code}")
             
