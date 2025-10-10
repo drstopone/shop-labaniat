@@ -37,7 +37,7 @@ p{
 }
 
 .chat-container {
-    height: 550px;
+    height: 450px;
     padding: 20px;
     overflow-y: auto;
     border-bottom: 1px solid #eee;
