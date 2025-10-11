@@ -34,9 +34,7 @@ p{
     padding: 5px;
     text-align: center;
     font-size: 12px;
-}
-/* راه حل قطعی */
-.chat-container {
+}.chat-container {
     padding: 20px;
     height: 500px;
     overflow-y: auto;
@@ -44,26 +42,26 @@ p{
 }
 
 .message {
-    max-width: 70%;
     padding: 12px 16px;
     border-radius: 18px;
+    margin-bottom: 15px;
+    max-width: 70%;
     line-height: 1.4;
-    word-wrap: break-word;
-    margin-bottom: 10px;
-    clear: both;
 }
 
+/* کاربر - راست */
 .user-message {
     background: #0088cc;
     color: white;
-    float: right;        /* اینو اضافه کن */
+    margin-left: 30%;     /* همیشه راست */
     border-bottom-right-radius: 5px;
 }
 
+/* ربات - چپ */
 .bot-message {
     background: white;
     color: #333;
-    float: left;         /* اینو اضافه کن */
+    margin-right: 30%;    /* همیشه چپ */
     border-bottom-left-radius: 5px;
     border: 1px solid #ddd;
 }
