@@ -39,9 +39,8 @@ p{
 .chat-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background: #e5ddd5;
 }
+
 
 .message {
     max-width: 70%;
@@ -56,17 +55,14 @@ p{
     background: #0088cc;
     color: white;
     margin-left: auto;
-    border-bottom-right-radius: 5px;
-    align-self: flex-end;
+    margin-right: 10px;
 }
 
 .bot-message {
     background: white;
     color: #333;
     margin-right: auto;
-    border-bottom-left-radius: 5px;
-    align-self: flex-start;
-    border: 1px solid #e1e5e9;
+    margin-left: 10px;
 }
 
 .input-area {
