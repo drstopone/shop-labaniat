@@ -143,40 +143,74 @@ async function sendMessage() {
 // 🎨 مدیریت نمایش پیام‌ها
 // =============================================
 
+// تابع اضافه کردن پیام با دکمه کپی
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
     
-    // 🔥 اضافه کردن کلاس‌های درست
-    messageDiv.className = 'message ${sender}-message';
+    messageDiv.className = `message ${sender}-message`;
+    
+    let messageContent = text;
+    
+    // فقط برای پیام‌های ربات دکمه کپی اضافه کن
+    if (sender === 'bot') {
+        messageContent = `
+            <div class="message-content">${text}</div>
+            <button class="copy-message-btn" onclick="copyBotMessage(this)">
+                📋 کپی پاسخ
+            </button>
+        `;
+    }
     
     // اضافه کردن دکمه کپی به کدها
     if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
-        messageDiv.innerHTML = addCopyButtonToCode(text);
+        messageDiv.innerHTML = addCopyButtonToCode(messageContent);
     } else {
-        messageDiv.innerHTML = text;
+        messageDiv.innerHTML = messageContent;
     }
     
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
-    // ذخیره در تاریخچه
     saveChatHistory();
-    
     return messageDiv;
 }
 
-// تابع ساده‌تر برای کپی
-window.copyBotMessage = function(button) {
+// تابع کپی کردن کل پیام ربات
+window.copyBotMessage = async function(button) {
     const messageDiv = button.parentElement;
-    const messageText = messageDiv.innerText.replace('📋 کپی پاسخ', '').trim();
+    const messageContent = messageDiv.querySelector('.message-content');
     
-    navigator.clipboard.writeText(messageText).then(() => {
-        button.textContent = '✅ کپی شد!';
-        setTimeout(() => {
-            button.textContent = '📋 کپی پاسخ';
-        }, 2000);
-    });
+    if (messageContent) {
+        const textToCopy = messageContent.textContent || messageContent.innerText;
+        
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+            
+            // نمایش تأیید
+            button.textContent = '✅ کپی شد!';
+            button.classList.add('copied');
+            
+            setTimeout(() => {
+                button.textContent = '📋 کپی پاسخ';
+                button.classList.remove('copied');
+            }, 2000);
+            
+        } catch (err) {
+            // روش fallback
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            button.textContent = '✅ کپی شد!';
+            setTimeout(() => {
+                button.textContent = '📋 کپی پاسخ';
+            }, 2000);
+        }
+    }
 }
 
 // =============================================
