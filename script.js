@@ -147,10 +147,11 @@ function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
     
+    // 🔥 اضافه کردن کلاس‌های درست
     messageDiv.className = 'message ${sender}-message';
     
     // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
+    if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
         messageDiv.innerHTML = addCopyButtonToCode(text);
     } else {
         messageDiv.innerHTML = text;
@@ -159,7 +160,7 @@ function addMessage(text, sender) {
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
-    // 🔥 ذخیره در تاریخچه نمایش (فقط برای نمایش، نه برای حافظه ربات)
+    // ذخیره در تاریخچه
     saveChatHistory();
     
     return messageDiv;
