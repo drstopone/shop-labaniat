@@ -166,6 +166,19 @@ function addMessage(text, sender) {
     return messageDiv;
 }
 
+// تابع ساده‌تر برای کپی
+window.copyBotMessage = function(button) {
+    const messageDiv = button.parentElement;
+    const messageText = messageDiv.innerText.replace('📋 کپی پاسخ', '').trim();
+    
+    navigator.clipboard.writeText(messageText).then(() => {
+        button.textContent = '✅ کپی شد!';
+        setTimeout(() => {
+            button.textContent = '📋 کپی پاسخ';
+        }, 2000);
+    });
+}
+
 // =============================================
 // 📋 مدیریت کپی کردن کد
 // =============================================
