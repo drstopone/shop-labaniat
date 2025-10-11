@@ -34,7 +34,9 @@ p{
     padding: 5px;
     text-align: center;
     font-size: 12px;
-}.chat-container {
+}
+
+.chat-container {
     padding: 20px;
     height: 500px;
     overflow-y: auto;
@@ -64,6 +66,32 @@ p{
     margin-right: 30%;    /* همیشه چپ */
     border-bottom-left-radius: 5px;
     border: 1px solid #ddd;
+    position: relative;
+    padding-bottom: 30px; /* فضای برای دکمه کپی */
+}
+
+.copy-message-btn {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    color: #666;
+    padding: 4px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.3s ease;
+}
+
+.copy-message-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.copy-message-btn.copied {
+    background: #10b981;
+    color: white;
 }
 
 .input-area {
