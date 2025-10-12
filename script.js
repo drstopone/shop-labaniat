@@ -170,7 +170,6 @@ function addMessage(text, sender) {
     
     chatContainer.scrollTop = chatContainer.scrollHeight;
     saveChatHistory();
-}
     
     // اضافه کردن دکمه کپی به کدها
     if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
