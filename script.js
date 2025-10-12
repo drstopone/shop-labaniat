@@ -143,25 +143,47 @@ async function sendMessage() {
 // 🎨 مدیریت نمایش پیام‌ها
 // =============================================
 
-// در JS این رو برگردون به حالت ساده
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
-    const messageDiv = document.createElement('div');
-    
-    messageDiv.className = 'message ${sender}-message';
-    
-    if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
-        messageDiv.innerHTML = addCopyButtonToCode(text);
+    let messageDiv; // Declare it here
+
+    if (sender === 'bot') {
+        const messageContainer = document.createElement('div');
+        messageContainer.className = 'bot-message-container';
+        messageContainer.innerHTML = `
+            <div class="bot-avatar"></div>
+            <div class="bot-message">
+                ${text}
+                <button class="copy-message-btn" onclick="copyBotMessage(this)">📋</button>
+            </div>
+        `;
+        chatContainer.appendChild(messageContainer);
+
+        // Assign messageDiv to the bot message element
+        messageDiv = messageContainer.querySelector('.bot-message');
+    } else {
+        messageDiv = document.createElement('div');
+        messageDiv.className = `message user-message`;
+        messageDiv.innerHTML = text;
+        chatContainer.appendChild(messageDiv);
+    }
+
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    saveChatHistory();
+
+    // اضافه کردن دکمه کپی به کدها
+    if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
+        messageDiv.innerHTML = addCopyButtonToCode(text); // Use `text` instead of `messageContent`
     } else {
         messageDiv.innerHTML = text;
     }
-    
-    chatContainer.appendChild(messageDiv);
+
     chatContainer.scrollTop = chatContainer.scrollHeight;
     saveChatHistory();
-    
+
     return messageDiv;
 }
+
 
 
 // تابع کپی کردن کل پیام ربات
