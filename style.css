@@ -100,7 +100,7 @@ body {
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    background-image: url('bot-avatar.jpg');
+    background-image: url('avatar.jpg');
     background-size: cover;
     background-position: center;
     border: 2px solid #0088cc;
