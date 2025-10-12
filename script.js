@@ -143,37 +143,38 @@ async function sendMessage() {
 // 🎨 مدیریت نمایش پیام‌ها
 // =============================================
 
+// تابع اضافه کردن پیام با دکمه کپی
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
     const messageDiv = document.createElement('div');
     
-    messageDiv.className = 'message ${sender}-message';
+    messageDiv.className = `message ${sender}-message`;
     
-    // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
-        messageDiv.innerHTML = addCopyButtonToCode(text);
-    } else {
-        messageDiv.innerHTML = text;
+    let messageContent = text;
+    
+    // فقط برای پیام‌های ربات دکمه کپی اضافه کن
+    if (sender === 'bot') {
+        messageContent = `
+            <div class="message-content">${text}</div>
+            <button class="copy-message-btn" onclick="copyBotMessage(this)">
+                📋
+            </button>
+        `;
     }
     
-    // 🔥 فقط برای پیام‌های ربات، دکمه کپی اضافه کن
-    if (sender === 'bot') {
-        const messageWithButton = `
-            <div class="message-content">${messageDiv.innerHTML}</div>
-            <button class="copy-message-btn" onclick="copyBotMessage(this)">📋 کپی پاسخ</button>
-        `;
-        messageDiv.innerHTML = messageWithButton;
+    // اضافه کردن دکمه کپی به کدها
+    if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
+        messageDiv.innerHTML = addCopyButtonToCode(messageContent);
+    } else {
+        messageDiv.innerHTML = messageContent;
     }
     
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
-    // ذخیره در تاریخچه
     saveChatHistory();
-    
     return messageDiv;
 }
-
 
 // تابع کپی کردن کل پیام ربات
 window.copyBotMessage = async function(button) {
