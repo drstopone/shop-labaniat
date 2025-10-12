@@ -3,6 +3,7 @@ import json
 import requests
 import re
 import html
+import cgi
 
 class handler(BaseHTTPRequestHandler):
     
@@ -114,14 +115,12 @@ class handler(BaseHTTPRequestHandler):
             return text
     
     def do_POST(self):
-
         try:
-                content_type = self.headers.get('Content-Type', '')
+            content_type = self.headers.get('Content-Type', '')
             
             if 'multipart/form-data' in content_type:
                 # پردازش فرم داده با عکس
-                import cgi
-                form = cgi.FieldStorage(
+form = cgi.FieldStorage(
                     fp=self.rfile,
                     headers=self.headers,
                     environ={'REQUEST_METHOD': 'POST',
@@ -146,16 +145,7 @@ class handler(BaseHTTPRequestHandler):
                 user_message = request_data.get('message', '')
                 client_history = request_data.get('history', [])
                 image_file = None
-
-            # خواندن پیام کاربر و تاریخچه
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            request_data = json.loads(post_data)
             
-            user_message = request_data.get('message', '')
-            client_history = request_data.get('history', [])  # 🔥 دریافت تاریخچه از کلاینت
-            
-            print(f"📨 پیام کاربر: {user_message}")
             print(f"📚 تاریخچه از کلاینت: {len(client_history)} پیام")
             
             # 🔥 نمایش تاریخچه برای دیباگ
@@ -224,7 +214,8 @@ class handler(BaseHTTPRequestHandler):
             # ارسال پاسخ
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
+            self.
+send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({"reply": bot_reply_html}).encode())
             
