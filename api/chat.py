@@ -116,38 +116,37 @@ class handler(BaseHTTPRequestHandler):
     def do_POST(self):
 
         try:
-        content_type = self.headers.get('Content-Type', '')
-        
-        if 'multipart/form-data' in content_type:
-            # پردازش فرم داده با عکس
-            import cgi
-            form = cgi.FieldStorage(
-                fp=self.rfile,
-                headers=self.headers,
-                environ={'REQUEST_METHOD': 'POST',
-                        'CONTENT_TYPE': self.headers['Content-Type']}
-            )
+                content_type = self.headers.get('Content-Type', '')
             
-            user_message = form.getvalue('message', '')
-            history_json = form.getvalue('history', '[]')
-            client_history = json.loads(history_json)
-            
-            image_file = form['image'] if 'image' in form else None
-            
-            print(f"📨 پیام کاربر: {user_message}")
-            print(f"📸 عکس آپلود شده: {'بله' if image_file else 'خیر'}")
-            
-        else:
-            # پردازش JSON معمولی
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            request_data = json.loads(post_data)
-            
-            user_message = request_data.get('message', '')
-            client_history = request_data.get('history', [])
-            image_file = None
+            if 'multipart/form-data' in content_type:
+                # پردازش فرم داده با عکس
+                import cgi
+                form = cgi.FieldStorage(
+                    fp=self.rfile,
+                    headers=self.headers,
+                    environ={'REQUEST_METHOD': 'POST',
+                            'CONTENT_TYPE': self.headers['Content-Type']}
+                )
+                
+                user_message = form.getvalue('message', '')
+                history_json = form.getvalue('history', '[]')
+                client_history = json.loads(history_json)
+                
+                image_file = form['image'] if 'image' in form else None
+                
+                print(f"📨 پیام کاربر: {user_message}")
+                print(f"📸 عکس آپلود شده: {'بله' if image_file else 'خیر'}")
+                
+            else:
+                # پردازش JSON معمولی
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+                request_data = json.loads(post_data)
+                
+                user_message = request_data.get('message', '')
+                client_history = request_data.get('history', [])
+                image_file = None
 
-        try:
             # خواندن پیام کاربر و تاریخچه
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
