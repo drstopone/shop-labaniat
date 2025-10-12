@@ -145,45 +145,34 @@ async function sendMessage() {
 
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
-    let messageDiv; // Declare it here
-
-    if (sender === 'bot') {
-        const messageContainer = document.createElement('div');
-        messageContainer.className = 'bot-message-container';
-        messageContainer.innerHTML = `
-            <div class="bot-avatar"></div>
-            <div class="bot-message">
-                ${text}
-                <button class="copy-message-btn" onclick="copyBotMessage(this)">📋</button>
-            </div>
-        `;
-        chatContainer.appendChild(messageContainer);
-
-        // Assign messageDiv to the bot message element
-        messageDiv = messageContainer.querySelector('.bot-message');
-    } else {
-        messageDiv = document.createElement('div');
-        messageDiv.className = `message user-message`;
-        messageDiv.innerHTML = text;
-        chatContainer.appendChild(messageDiv);
-    }
-
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    saveChatHistory();
-
+    const messageDiv = document.createElement('div');
+    
+    messageDiv.className = message ${sender}-message;
+    
     // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
-        messageDiv.innerHTML = addCopyButtonToCode(text); // Use `text` instead of `messageContent`
+    if (typeof text === 'string' && (text.includes('<pre')  text.includes('code-container')  text.includes('inline-code'))) {
+        messageDiv.innerHTML = addCopyButtonToCode(text);
     } else {
         messageDiv.innerHTML = text;
     }
-
+    
+    // 🔥 فقط برای پیام‌های ربات، دکمه کپی اضافه کن
+    if (sender === 'bot') {
+        const messageWithButton = `
+            <div class="message-content">${messageDiv.innerHTML}</div>
+            <button class="copy-message-btn" onclick="copyBotMessage(this)">📋 کپی پاسخ</button>
+        `;
+        messageDiv.innerHTML = messageWithButton;
+    }
+    
+    chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // ذخیره در تاریخچه
     saveChatHistory();
-
+    
     return messageDiv;
 }
-
 
 
 // تابع کپی کردن کل پیام ربات
