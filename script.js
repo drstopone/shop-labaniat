@@ -143,40 +143,52 @@ async function sendMessage() {
 // 🎨 مدیریت نمایش پیام‌ها
 // =============================================
 
-// تابع اضافه کردن پیام با دکمه کپی
+// تابع اضافه کردن پیام با دکمه کپی و آواتار
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
-    const messageDiv = document.createElement('div');
-    
-    messageDiv.className = `message ${sender}-message`;
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'message-container';
     
     let messageContent = text;
     
-    // فقط برای پیام‌های ربات دکمه کپی اضافه کن
     if (sender === 'bot') {
+        // ساختار جدید با آواتار برای ربات
         messageContent = `
-            <div class="message-content">${text}</div>
-            <button class="copy-message-btn" onclick="copyBotMessage(this)">
-                📋
-            </button>
+            <img src="avatar.jpg" alt="آواتار" class="message-avatar">
+            <div class="message bot-message">
+                <div class="message-content">${text}</div>
+                <button class="copy-message-btn" onclick="copyBotMessage(this)">
+                    📋
+                </button>
+            </div>
+        `;
+    } else {
+        // ساختار برای کاربر (بدون آواتار)
+        messageContent = `
+            <div class="message user-message">
+                ${text}
+            </div>
         `;
     }
     
+    messageContainer.innerHTML = messageContent;
+    
     // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
-        messageDiv.innerHTML = addCopyButtonToCode(messageContent);
-    } else {
-        messageDiv.innerHTML = messageContent;
+    if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
+        const messageDiv = messageContainer.querySelector('.message');
+        if (messageDiv) {
+            messageDiv.innerHTML = addCopyButtonToCode(messageDiv.innerHTML);
+        }
     }
     
-    chatContainer.appendChild(messageDiv);
+    chatContainer.appendChild(messageContainer);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
     saveChatHistory();
-    return messageDiv;
+    return messageContainer;
 }
 
-// تابع کپی کردن کل پیام ربات
+// تابع کپی کردن کل پیام ربات (آپدیت شده)
 window.copyBotMessage = async function(button) {
     const messageDiv = button.parentElement;
     const messageContent = messageDiv.querySelector('.message-content');
