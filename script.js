@@ -65,137 +65,48 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log(`📊 تاریخچه موقت: ${getTemporaryHistory().length} پیام`);
 });
 
-
-
-// =============================================
-// 📸 مدیریت آپلود عکس
-// =============================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // رویدادهای چت
-    document.getElementById('sendButton').addEventListener('click', sendMessage);
-    document.getElementById('userInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendMessage();
-    });
-    
-    // 🔥 رویدادهای آپلود عکس
-    document.getElementById('uploadBtn').addEventListener('click', function() {
-        document.getElementById('imageUpload').click();
-    });
-    
-    document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
-    document.getElementById('removeFile').addEventListener('click', removeSelectedFile);
-    
-    // 🔥 پاک کردن تاریخچه هنگام لود صفحه (رفرش)
-    clearOnRefresh();
-    
-    console.log('✅ چت‌بات آماده است!');
-    console.log(`📊 تاریخچه موقت: ${getTemporaryHistory().length} پیام`);
-});
-
-// تابع مدیریت آپلود عکس
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        // نمایش نام فایل
-        document.getElementById('fileName').textContent = file.name;
-        document.getElementById('removeFile').style.display = 'block';
-        
-        // پیش‌نمایش عکس
-        previewImage(file);
-        
-        console.log(`📸 عکس انتخاب شد: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
-    }
-}
-
-// تابع پیش‌نمایش عکس
-function previewImage(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        // حذف پیش‌نمایش قبلی اگر وجود دارد
-        const oldPreview = document.querySelector('.preview-image');
-        if (oldPreview) oldPreview.remove();
-        
-        // ایجاد پیش‌نمایش جدید
-        const preview = document.createElement('img');
-        preview.src = e.target.result;
-        preview.className = 'preview-image';
-        preview.alt = 'پیش‌نمایش عکس';
-        
-        // اضافه کردن پیش‌نمایش به بخش آپلود
-        document.querySelector('.upload-section').appendChild(preview);
-    };
-    reader.readAsDataURL(file);
-}
-
-// تابع حذف فایل انتخاب شده
-function removeSelectedFile() {
-    document.getElementById('imageUpload').value = '';
-    document.getElementById('fileName').textContent = '';
-    document.getElementById('removeFile').style.display = 'none';
-    
-    // حذف پیش‌نمایش
-    const preview = document.querySelector('.preview-image');
-    if (preview) preview.remove();
-    
-    console.log('🗑️ عکس حذف شد');
-}
-
-
 async function sendMessage() {
     const now = Date.now();
     const timeSinceLastMessage = now - lastMessageTime;
     
     // بررسی تأخیر
-    // if (timeSinceLastMessage < MESSAGE_DELAY) {
-    //     const remainingTime = (MESSAGE_DELAY - timeSinceLastMessage) / 1000;
-    //     addMessage(`لطفاً ${remainingTime.toFixed(1)} ثانیه صبر کن... ⏳`, 'bot');
-    //     return;
-    // }
+    if (timeSinceLastMessage < MESSAGE_DELAY) {
+        const remainingTime = (MESSAGE_DELAY - timeSinceLastMessage) / 1000;
+        addMessage(`لطفاً ${remainingTime.toFixed(1)} ثانیه صبر کن... ⏳`, 'bot');
+        return;
+    }
     
     lastMessageTime = now;
     
     const userInput = document.getElementById('userInput');
     const message = userInput.value.trim();
-    const imageFile = document.getElementById('imageUpload').files[0];
     
-    // اگر نه متن داره نه عکس، برگرد
-    if (!message && !imageFile) return;
+    if (!message) return;
     
     // غیرفعال کردن دکمه و اینپوت
     userInput.disabled = true;
     document.getElementById('sendButton').disabled = true;
-    document.getElementById('uploadBtn').disabled = true;
     
-    // نمایش پیام کاربر
-    let userMessageContent = message;
-    if (imageFile) {
-        userMessageContent += ' 📷 [عکس پیوست شده]';
-    }
-    addMessage(userMessageContent, 'user');
+    addMessage(message, 'user');
     userInput.value = '';
     
     try {
         // 🔥 اضافه کردن پیام کاربر به تاریخچه موقت
-        addToTemporaryHistory('user', userMessageContent);
+        addToTemporaryHistory('user', message);
         
         // نمایش حالت "در حال تایپ"
         const typingIndicator = addMessage('... در حال تایپ', 'bot');
         
-        // 🔥 آماده کردن داده برای ارسال
-        const formData = new FormData();
-        formData.append('message', message);
-        formData.append('history', JSON.stringify(getTemporaryHistory()));
-        
-        // اگر عکس وجود دارد، اضافه کن
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
-        
-        // 🔥 ارسال به سرور
+        // 🔥 ارسال تاریخچه به سرور
         const response = await fetch('/api/chat', {
             method: 'POST',
-            body: formData // استفاده از FormData به جای JSON
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                message: message,
+                history: getTemporaryHistory()
+            })
         });
         
         // حذف نشانگر "در حال تایپ"
@@ -220,12 +131,8 @@ async function sendMessage() {
         // فعال کردن مجدد
         userInput.disabled = false;
         document.getElementById('sendButton').disabled = false;
-        document.getElementById('uploadBtn').disabled = false;
         
-        // پاک کردن عکس بعد از ارسال
-        removeSelectedFile();
-        
-        // 🔥 برگرداندن focus به input
+        // 🔥 برگرداندن focus به input (مهم!)
         userInput.focus();
         
         console.log('✅ آماده دریافت پیام جدید');

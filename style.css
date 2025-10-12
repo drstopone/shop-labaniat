@@ -55,7 +55,7 @@ body {
 }
 
 .user-input {
-    width: 95%;
+    width: 100%;
     padding: 12px 18px;
     border: none;
     border-radius: 25px;
@@ -289,72 +289,4 @@ button:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #fef3c7;
     border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* استایل‌های مربوط به آپلود عکس */
-.upload-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.upload-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.upload-btn:hover {
-    background: #218838;
-    transform: scale(1.05);
-}
-
-.file-name {
-    font-size: 12px;
-    color: #666;
-    margin-right: 10px;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.remove-file {
-    background: #dc3545;
-    color: white;
-    border: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.remove-file:hover {
-    background: #c82333;
-}
-
-.preview-image {
-    max-width: 200px;
-    max-height: 150px;
-    border-radius: 10px;
-    margin-top: 10px;
-    border: 2px solid #ddd;
-}
-
-/* آیکون‌ها */
-.icon {
-    font-size: 14px;
 }
