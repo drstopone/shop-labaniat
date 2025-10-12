@@ -86,7 +86,6 @@ body {
     border-bottom-right-radius: 5px;
 }
 
-/* استایل پیام ربات با دکمه کپی */
 .bot-message {
     background: white;
     color: #333;
@@ -94,7 +93,23 @@ body {
     border-bottom-left-radius: 5px;
     border: 1px solid #ddd;
     position: relative;
-    margin-bottom: 40px; /* فضای اضافه برای دکمه کپی */
+    padding-left: 50px;
+    min-height: 40px;
+}
+
+.bot-message::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-image: url('bot-avatar.jpg');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #0088cc;
 }
 
 /* دکمه کپی پیام */
