@@ -86,17 +86,19 @@ body {
     border-bottom-right-radius: 5px;
 }
 
+/* راه حل ساده - دکمه کپی داخل پیام */
 .bot-message {
     background: white;
     color: #333;
     margin-right: auto;
     border-bottom-left-radius: 5px;
     border: 1px solid #ddd;
+    padding-bottom: 35px; /* فضای برای دکمه کپی */
 }
 
 .copy-message-btn {
     position: absolute;
-    bottom: 5px;
+    bottom: 8px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.1);
