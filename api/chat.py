@@ -119,13 +119,13 @@ class handler(BaseHTTPRequestHandler):
             content_type = self.headers.get('Content-Type', '')
             
             if 'multipart/form-data' in content_type:
-                # پردازش فرم داده با عکس
-            form = cgi.FieldStorage(
-                                fp=self.rfile,
-                                headers=self.headers,
-                                environ={'REQUEST_METHOD': 'POST',
-                                        'CONTENT_TYPE': self.headers['Content-Type']}
-                            )
+                    # پردازش فرم داده با عکس
+                form = cgi.FieldStorage(
+                                    fp=self.rfile,
+                                    headers=self.headers,
+                                    environ={'REQUEST_METHOD': 'POST',
+                                            'CONTENT_TYPE': self.headers['Content-Type']}
+                                )
                 
                 user_message = form.getvalue('message', '')
                 history_json = form.getvalue('history', '[]')
