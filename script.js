@@ -157,7 +157,7 @@ function addMessage(text, sender) {
         messageContent = `
             <div class="message-content">${text}</div>
             <button class="copy-message-btn" onclick="copyBotMessage(this)">
-                📋 کپی پاسخ
+                📋
             </button>
         `;
     }
@@ -188,11 +188,11 @@ window.copyBotMessage = async function(button) {
             await navigator.clipboard.writeText(textToCopy);
             
             // نمایش تأیید
-            button.textContent = '✅ کپی شد!';
+            button.textContent = '✅';
             button.classList.add('copied');
             
             setTimeout(() => {
-                button.textContent = '📋 کپی پاسخ';
+                button.textContent = '📋';
                 button.classList.remove('copied');
             }, 2000);
             
@@ -205,9 +205,9 @@ window.copyBotMessage = async function(button) {
             document.execCommand('copy');
             document.body.removeChild(textArea);
             
-            button.textContent = '✅ کپی شد!';
+            button.textContent = '✅';
             setTimeout(() => {
-                button.textContent = '📋 کپی پاسخ';
+                button.textContent = '📋';
             }, 2000);
         }
     }
