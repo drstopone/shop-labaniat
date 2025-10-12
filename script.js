@@ -147,11 +147,11 @@ async function sendMessage() {
     const timeSinceLastMessage = now - lastMessageTime;
     
     // بررسی تأخیر
-    if (timeSinceLastMessage < MESSAGE_DELAY) {
-        const remainingTime = (MESSAGE_DELAY - timeSinceLastMessage) / 1000;
-        addMessage(`لطفاً ${remainingTime.toFixed(1)} ثانیه صبر کن... ⏳`, 'bot');
-        return;
-    }
+    // if (timeSinceLastMessage < MESSAGE_DELAY) {
+    //     const remainingTime = (MESSAGE_DELAY - timeSinceLastMessage) / 1000;
+    //     addMessage(`لطفاً ${remainingTime.toFixed(1)} ثانیه صبر کن... ⏳`, 'bot');
+    //     return;
+    // }
     
     lastMessageTime = now;
     
