@@ -65,6 +65,83 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log(`📊 تاریخچه موقت: ${getTemporaryHistory().length} پیام`);
 });
 
+
+
+// =============================================
+// 📸 مدیریت آپلود عکس
+// =============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // رویدادهای چت
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+    document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    // 🔥 رویدادهای آپلود عکس
+    document.getElementById('uploadBtn').addEventListener('click', function() {
+        document.getElementById('imageUpload').click();
+    });
+    
+    document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+    document.getElementById('removeFile').addEventListener('click', removeSelectedFile);
+    
+    // 🔥 پاک کردن تاریخچه هنگام لود صفحه (رفرش)
+    clearOnRefresh();
+    
+    console.log('✅ چت‌بات آماده است!');
+    console.log(`📊 تاریخچه موقت: ${getTemporaryHistory().length} پیام`);
+});
+
+// تابع مدیریت آپلود عکس
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // نمایش نام فایل
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('removeFile').style.display = 'block';
+        
+        // پیش‌نمایش عکس
+        previewImage(file);
+        
+        console.log(`📸 عکس انتخاب شد: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+    }
+}
+
+// تابع پیش‌نمایش عکس
+function previewImage(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        // حذف پیش‌نمایش قبلی اگر وجود دارد
+        const oldPreview = document.querySelector('.preview-image');
+        if (oldPreview) oldPreview.remove();
+        
+        // ایجاد پیش‌نمایش جدید
+        const preview = document.createElement('img');
+        preview.src = e.target.result;
+        preview.className = 'preview-image';
+        preview.alt = 'پیش‌نمایش عکس';
+        
+        // اضافه کردن پیش‌نمایش به بخش آپلود
+        document.querySelector('.upload-section').appendChild(preview);
+    };
+    reader.readAsDataURL(file);
+}
+
+// تابع حذف فایل انتخاب شده
+function removeSelectedFile() {
+    document.getElementById('imageUpload').value = '';
+    document.getElementById('fileName').textContent = '';
+    document.getElementById('removeFile').style.display = 'none';
+    
+    // حذف پیش‌نمایش
+    const preview = document.querySelector('.preview-image');
+    if (preview) preview.remove();
+    
+    console.log('🗑️ عکس حذف شد');
+}
+
+
 async function sendMessage() {
     const now = Date.now();
     const timeSinceLastMessage = now - lastMessageTime;
@@ -80,33 +157,45 @@ async function sendMessage() {
     
     const userInput = document.getElementById('userInput');
     const message = userInput.value.trim();
+    const imageFile = document.getElementById('imageUpload').files[0];
     
-    if (!message) return;
+    // اگر نه متن داره نه عکس، برگرد
+    if (!message && !imageFile) return;
     
     // غیرفعال کردن دکمه و اینپوت
     userInput.disabled = true;
     document.getElementById('sendButton').disabled = true;
+    document.getElementById('uploadBtn').disabled = true;
     
-    addMessage(message, 'user');
+    // نمایش پیام کاربر
+    let userMessageContent = message;
+    if (imageFile) {
+        userMessageContent += ' 📷 [عکس پیوست شده]';
+    }
+    addMessage(userMessageContent, 'user');
     userInput.value = '';
     
     try {
         // 🔥 اضافه کردن پیام کاربر به تاریخچه موقت
-        addToTemporaryHistory('user', message);
+        addToTemporaryHistory('user', userMessageContent);
         
         // نمایش حالت "در حال تایپ"
         const typingIndicator = addMessage('... در حال تایپ', 'bot');
         
-        // 🔥 ارسال تاریخچه به سرور
+        // 🔥 آماده کردن داده برای ارسال
+        const formData = new FormData();
+        formData.append('message', message);
+        formData.append('history', JSON.stringify(getTemporaryHistory()));
+        
+        // اگر عکس وجود دارد، اضافه کن
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        
+        // 🔥 ارسال به سرور
         const response = await fetch('/api/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                message: message,
-                history: getTemporaryHistory()
-            })
+            body: formData // استفاده از FormData به جای JSON
         });
         
         // حذف نشانگر "در حال تایپ"
@@ -131,8 +220,12 @@ async function sendMessage() {
         // فعال کردن مجدد
         userInput.disabled = false;
         document.getElementById('sendButton').disabled = false;
+        document.getElementById('uploadBtn').disabled = false;
         
-        // 🔥 برگرداندن focus به input (مهم!)
+        // پاک کردن عکس بعد از ارسال
+        removeSelectedFile();
+        
+        // 🔥 برگرداندن focus به input
         userInput.focus();
         
         console.log('✅ آماده دریافت پیام جدید');
@@ -143,52 +236,40 @@ async function sendMessage() {
 // 🎨 مدیریت نمایش پیام‌ها
 // =============================================
 
-// تابع اضافه کردن پیام با دکمه کپی و آواتار
+// تابع اضافه کردن پیام با دکمه کپی
 function addMessage(text, sender) {
     const chatContainer = document.getElementById('chatContainer');
-    const messageContainer = document.createElement('div');
-    messageContainer.className = 'message-container';
+    const messageDiv = document.createElement('div');
+    
+    messageDiv.className = `message ${sender}-message`;
     
     let messageContent = text;
     
+    // فقط برای پیام‌های ربات دکمه کپی اضافه کن
     if (sender === 'bot') {
-        // ساختار جدید با آواتار برای ربات و دکمه کپی داخل بلاک
         messageContent = `
-            <img src="avatar.jpg" alt="آواتار" class="message-avatar">
-            <div class="message bot-message">
-                <div class="message-content">${text}</div>
-                <button class="copy-message-btn" onclick="copyBotMessage(this)">
-                    📋
-                </button>
-            </div>
-        `;
-    } else {
-        // ساختار برای کاربر (بدون آواتار)
-        messageContent = `
-            <div class="message user-message">
-                ${text}
-            </div>
+            <div class="message-content">${text}</div>
+            <button class="copy-message-btn" onclick="copyBotMessage(this)">
+                📋
+            </button>
         `;
     }
-    
-    messageContainer.innerHTML = messageContent;
     
     // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
-        const messageDiv = messageContainer.querySelector('.message');
-        if (messageDiv) {
-            messageDiv.innerHTML = addCopyButtonToCode(messageDiv.innerHTML);
-        }
+    if (typeof text === 'string' && (text.includes('<pre') || text.includes('code-container') || text.includes('inline-code'))) {
+        messageDiv.innerHTML = addCopyButtonToCode(messageContent);
+    } else {
+        messageDiv.innerHTML = messageContent;
     }
     
-    chatContainer.appendChild(messageContainer);
+    chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
     saveChatHistory();
-    return messageContainer;
+    return messageDiv;
 }
 
-// تابع کپی کردن کل پیام ربات (آپدیت شده)
+// تابع کپی کردن کل پیام ربات
 window.copyBotMessage = async function(button) {
     const messageDiv = button.parentElement;
     const messageContent = messageDiv.querySelector('.message-content');
