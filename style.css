@@ -110,7 +110,7 @@ body {
 .bot-message {
     background: white;
     color: #333;
-    margin-right: auto;
+    margin-left: auto;
     border-bottom-left-radius: 5px;
     border: 1px solid #ddd;
     position: relative;
