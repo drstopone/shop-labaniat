@@ -152,13 +152,13 @@ function addMessage(text, sender) {
     let messageContent = text;
     
     if (sender === 'bot') {
-        // ساختار جدید با آواتار برای ربات
+        // ساختار جدید با آواتار برای ربات و دکمه کپی داخل بلاک
         messageContent = `
             <img src="avatar.jpg" alt="آواتار" class="message-avatar">
             <div class="message bot-message">
                 <div class="message-content">${text}</div>
                 <button class="copy-message-btn" onclick="copyBotMessage(this)">
-                    📋
+                    کپی
                 </button>
             </div>
         `;
@@ -174,7 +174,7 @@ function addMessage(text, sender) {
     messageContainer.innerHTML = messageContent;
     
     // اضافه کردن دکمه کپی به کدها
-    if (typeof text === 'string' && (text.includes('<pre') , text.includes('code-container') , text.includes('inline-code'))) {
+    if (typeof text === 'string' && (text.includes('<pre')  text.includes('code-container')  text.includes('inline-code'))) {
         const messageDiv = messageContainer.querySelector('.message');
         if (messageDiv) {
             messageDiv.innerHTML = addCopyButtonToCode(messageDiv.innerHTML);
