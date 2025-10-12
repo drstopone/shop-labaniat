@@ -86,6 +86,7 @@ body {
     border-bottom-right-radius: 5px;
 }
 
+/* حذف .bot-message::before از CSS */
 .bot-message-container {
     display: flex;
     align-items: flex-start;
@@ -99,7 +100,7 @@ body {
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    background-image: url('avatar.jpg');
+    background-image: url('bot-avatar.jpg');
     background-size: cover;
     background-position: center;
     border: 2px solid #0088cc;
