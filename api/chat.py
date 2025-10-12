@@ -3,7 +3,6 @@ import json
 import requests
 import re
 import html
-import cgi
 
 class handler(BaseHTTPRequestHandler):
     
@@ -113,122 +112,98 @@ class handler(BaseHTTPRequestHandler):
         except Exception as e:
             print(f"⚠️ خطا در تبدیل Markdown: {e}")
             return text
-def do_POST(self):
-    try:
-        content_type = self.headers.get('Content-Type', '')
-        
-        if 'multipart/form-data' in content_type:
-            # پردازش فرم داده با عکس
-            form = cgi.FieldStorage(
-                fp=self.rfile,
-                headers=self.headers,
-                environ={'REQUEST_METHOD': 'POST',
-                        'CONTENT_TYPE': self.headers['Content-Type']}
-            )
-            
-            user_message = form.getvalue('message', '')
-            history_json = form.getvalue('history', '[]')
-            client_history = json.loads(history_json)
-            
-            # تصحیح بررسی عکس - FieldStorage نمی‌تونه مستقیماً به bool تبدیل بشه
-            image_file = None
-            if 'image' in form and form['image'].filename:
-                image_file = form['image']
-            
-            print(f"📨 پیام کاربر: {user_message}")
-            print(f"📸 عکس آپلود شده: {'بله' if image_file else 'خیر'}")
-            
-        else:
-            # پردازش JSON معمولی
+    
+    def do_POST(self):
+        try:
+            # خواندن پیام کاربر و تاریخچه
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             request_data = json.loads(post_data)
             
             user_message = request_data.get('message', '')
-            client_history = request_data.get('history', [])
-            image_file = None
-        
-        # بقیه کدهای شما بدون تغییر...
-        print(f"📚 تاریخچه از کلاینت: {len(client_history)} پیام")
-        
-        # 🔥 نمایش تاریخچه برای دیباگ
-        for i, msg in enumerate(client_history):
-            role = "کاربر" if msg.get("role") == "user" else "ربات"
-            text_preview = msg.get("text", "")[:50] + "..." if len(msg.get("text", "")) > 50 else msg.get("text", "")
-            print(f"   {i+1}. {role}: {text_preview}")
-        
-        # استفاده از Google Gemini
-        api_key = "AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs"
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-        
-        headers = {
-            'Content-Type': 'application/json',
-            'X-goog-api-key': api_key
-        }
-        
-        # 🔥 ساختاردهی به تاریخچه برای Gemini
-        contents = []
-        
-        if client_history:
-            # اگر تاریخچه داریم، تمامش رو به فرمت Gemini تبدیل می‌کنیم
-            for msg in client_history:
-                role = "user" if msg.get("role") == "user" else "model"
-                text = msg.get("text", "")
-                if text:  # فقط پیام‌های غیرخالی رو اضافه کن
-                    contents.append({
-                        "role": role,
-                        "parts": [{"text": text}]
-                    })
-        
-        # اضافه کردن پیام جدید کاربر
-        contents.append({
-            "role": "user",
-            "parts": [{"text": user_message}]
-        })
-        
-        data = {
-            "contents": contents
-        }
-        
-        print(f"🔧 ارسال {len(contents)} پیام به Gemini...")
-        
-        response = requests.post(url, headers=headers, json=data)
-        print(f"🔧 وضعیت پاسخ: {response.status_code}")
-        
-        if response.status_code == 200:
-            result = response.json()
-            print(f"🔧 پاسخ کامل: {result}")
+            client_history = request_data.get('history', [])  # 🔥 دریافت تاریخچه از کلاینت
             
-            # استخراج پاسخ از ساختار JSON
-            if 'candidates' in result and len(result['candidates']) > 0:
-                bot_reply = result['candidates'][0]['content']['parts'][0]['text']
+            print(f"📨 پیام کاربر: {user_message}")
+            print(f"📚 تاریخچه از کلاینت: {len(client_history)} پیام")
+            
+            # 🔥 نمایش تاریخچه برای دیباگ
+            for i, msg in enumerate(client_history):
+                role = "کاربر" if msg.get("role") == "user" else "ربات"
+                text_preview = msg.get("text", "")[:50] + "..." if len(msg.get("text", "")) > 50 else msg.get("text", "")
+                print(f"   {i+1}. {role}: {text_preview}")
+            
+            # استفاده از Google Gemini
+            api_key = "AIzaSyBmGVicWfMWTjkxuMjgJuB-bDbLexFttHs"
+            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+            
+            headers = {
+                'Content-Type': 'application/json',
+                'X-goog-api-key': api_key
+            }
+            
+            # 🔥 ساختاردهی به تاریخچه برای Gemini
+            contents = []
+            
+            if client_history:
+                # اگر تاریخچه داریم، تمامش رو به فرمت Gemini تبدیل می‌کنیم
+                for msg in client_history:
+                    role = "user" if msg.get("role") == "user" else "model"
+                    text = msg.get("text", "")
+                    if text:  # فقط پیام‌های غیرخالی رو اضافه کن
+                        contents.append({
+                            "role": role,
+                            "parts": [{"text": text}]
+                        })
+            
+            # اضافه کردن پیام جدید کاربر
+            contents.append({
+                "role": "user",
+                "parts": [{"text": user_message}]
+            })
+            
+            data = {
+                "contents": contents
+            }
+            
+            print(f"🔧 ارسال {len(contents)} پیام به Gemini...")
+            
+            response = requests.post(url, headers=headers, json=data)
+            print(f"🔧 وضعیت پاسخ: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"🔧 پاسخ کامل: {result}")
                 
-                # تبدیل Markdown به HTML
-                bot_reply_html = self.markdown_to_html(bot_reply)
-                print("✅ پاسخ از Gemini دریافت و تبدیل شد")
+                # استخراج پاسخ از ساختار JSON
+                if 'candidates' in result and len(result['candidates']) > 0:
+                    bot_reply = result['candidates'][0]['content']['parts'][0]['text']
+                    
+                    # تبدیل Markdown به HTML
+                    bot_reply_html = self.markdown_to_html(bot_reply)
+                    print("✅ پاسخ از Gemini دریافت و تبدیل شد")
+                else:
+                    bot_reply_html = "⚠️ ساختار پاسخ غیرمنتظره از Gemini"
+                    
             else:
-                bot_reply_html = "⚠️ ساختار پاسخ غیرمنتظره از Gemini"
-                
-        else:
-            error_msg = response.text
-            print(f"❌ خطا: {error_msg}")
-            bot_reply_html = f"⚠️ خطا از سمت Gemini (کد: {response.status_code})"
-        
-        # ارسال پاسخ
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps({"reply": bot_reply_html}).encode())
-        
-        print("✅ پاسخ ارسال شد")
-        
-    except Exception as e:
-        error_msg = f"خطا: {str(e)}"
-        print(f"❌ {error_msg}")
-        
-        self.send_response(500)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps({"reply": "خطا در سرور: " + str(e)}).encode())
+                error_msg = response.text
+                print(f"❌ خطا: {error_msg}")
+                bot_reply_html = f"⚠️ خطا از سمت Gemini (کد: {response.status_code})"
+            
+            # ارسال پاسخ
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({"reply": bot_reply_html}).encode())
+            
+            print("✅ پاسخ ارسال شد")
+            
+        except Exception as e:
+            error_msg = f"خطا: {str(e)}"
+            print(f"❌ {error_msg}")
+            
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({"reply": "خطا در سرور: " + str(e)}).encode())
