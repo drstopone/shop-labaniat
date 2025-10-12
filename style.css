@@ -71,12 +71,32 @@ body {
     cursor: pointer;
 }
 
-/* استایل پیام‌ها (همون قبلی) */
+/* کانتینر پیام */
+.message-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* آواتار */
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* استایل پیام‌ها */
 .message {
     max-width: 70%;
     padding: 12px 16px;
     border-radius: 18px;
     line-height: 1.4;
+    position: relative;
 }
 
 .user-message {
@@ -90,10 +110,8 @@ body {
 .bot-message {
     background: white;
     color: #333;
-    margin-right: auto;
     border-bottom-left-radius: 5px;
     border: 1px solid #ddd;
-    position: relative;
     margin-bottom: 40px; /* فضای اضافه برای دکمه کپی */
 }
 
@@ -128,7 +146,6 @@ body {
     background: #f0f0f0;
     border-top: 1px solid #ddd;
 }
-
 
 input {
     border-radius: 25px;
@@ -165,7 +182,6 @@ button:hover {
     color: #4a5568;
 }
 
-
 /* برای پیام‌های کاربر */
 .message.user-message strong {
     color: white;
@@ -174,7 +190,6 @@ button:hover {
 .message.user-message em {
     color: #e2e8f0;
 }
-
 
 .message a {
     color: #3182ce;
