@@ -158,7 +158,7 @@ function addMessage(text, sender) {
             <div class="message bot-message">
                 <div class="message-content">${text}</div>
                 <button class="copy-message-btn" onclick="copyBotMessage(this)">
-                    کپی
+                    📋
                 </button>
             </div>
         `;
